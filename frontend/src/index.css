@@ -1973,6 +1973,77 @@ select.field {
   color: #f1f5f9;
 }
 
+/* ---------- device menu ---------- */
+
+[data-theme="night"] .menu__trigger {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .menu__trigger:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+}
+
+[data-theme="night"] .menu__pop {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 16px 38px rgba(0, 0, 0, 0.5);
+}
+
+[data-theme="night"] .menu__item {
+  color: #cbd5e1;
+}
+
+[data-theme="night"] .menu__item:hover {
+  background: rgba(96, 165, 250, 0.12);
+  color: #f1f5f9;
+}
+
+[data-theme="night"] .menu__item--danger {
+  color: #fb923c;
+}
+
+[data-theme="night"] .menu__item--danger:hover {
+  background: rgba(249, 115, 22, 0.15);
+  color: #fb923c;
+}
+
+/* ---------- modals ---------- */
+
+[data-theme="night"] .modal-backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+[data-theme="night"] .modal {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+}
+
+[data-theme="night"] .modal__title {
+  color: #f8fafc;
+}
+
+[data-theme="night"] .modal__sub {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .modal__sub code {
+  color: #60a5fa;
+}
+
+[data-theme="night"] .modal__err {
+  color: #fb923c;
+}
+
+[data-theme="night"] .btn--primary {
+  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.35);
+}
+
+[data-theme="night"] .btn--danger {
+  box-shadow: 0 6px 16px rgba(249, 115, 22, 0.35);
+}
+
 /* Theme Toggle Button */
 .theme-toggle {
   display: inline-flex;

@@ -27,7 +27,7 @@ export default function DeviceCard({ device }) {
 
   // In Smart Mode the backend rule owns the fan; the switch steps aside.
   const controlledBySmart = device.type === 'fan' && mode === 'smart'
-  const powerDisabled = !online || busy || controlledBySmart
+  const powerDisabled = !online || controlledBySmart
 
   const temp = device.data?.temperature
   const hum = device.data?.humidity

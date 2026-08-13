@@ -133,9 +133,6 @@ export function SmartRoomProvider({ children }) {
 
       try {
         const res = await smartRoomApi.sendDeviceCommand(deviceId, command, value)
-        updateDevices((list) =>
-          list.map((d) => (d.id === deviceId ? { ...d, pending: undefined } : d)),
-        )
         return res
       } catch (e) {
         // Roll back to the state before the optimistic flip
