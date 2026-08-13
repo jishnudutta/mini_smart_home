@@ -1855,11 +1855,11 @@ select.field {
 
 [data-theme="night"] {
   --color-base: #0b0f19;
-  --color-ink: #f0f4fc;
-  --color-ink-dim: #94a3b8;
-  --color-ink-faint: #64748b;
-  --color-line: rgba(255, 255, 255, 0.12);
-  --color-line-soft: rgba(255, 255, 255, 0.06);
+  --color-ink: #f8fafc;
+  --color-ink-dim: #cbd5e1;
+  --color-ink-faint: #94a3b8;
+  --color-line: rgba(255, 255, 255, 0.16);
+  --color-line-soft: rgba(255, 255, 255, 0.08);
 }
 
 [data-theme="night"] body {
@@ -1868,7 +1868,7 @@ select.field {
     radial-gradient(820px 520px at 96% -6%, rgba(168, 85, 247, 0.22) 0%, rgba(0, 0, 0, 0) 62%),
     radial-gradient(1000px 600px at 50% 112%, rgba(14, 165, 233, 0.18) 0%, rgba(0, 0, 0, 0) 60%),
     linear-gradient(180deg, #090d16 0%, #0f172a 46%, #0b0f19 100%);
-  color: #f0f4fc;
+  color: #f8fafc;
 }
 
 [data-theme="night"] body::before {
@@ -1881,24 +1881,96 @@ select.field {
 [data-theme="night"] .state-panel,
 [data-theme="night"] .env-card,
 [data-theme="night"] .schart {
-  background: rgba(15, 23, 42, 0.68);
-  border-color: rgba(255, 255, 255, 0.12);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+}
+
+/* Pills & Badges Contrast Fixes */
+[data-theme="night"] .pill,
+[data-theme="night"] .brand__ver {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f1f5f9;
+}
+
+[data-theme="night"] .pill__detail {
+  color: #a5b4fc;
+}
+
+[data-theme="night"] .mode {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: rgba(255, 255, 255, 0.18);
+}
+
+[data-theme="night"] .mode__btn {
+  color: #cbd5e1;
+}
+
+[data-theme="night"] .mode__btn:hover {
+  color: #ffffff;
+}
+
+[data-theme="night"] .theme-toggle {
+  background: rgba(30, 41, 59, 0.9);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #f8fafc;
+}
+
+[data-theme="night"] .theme-toggle:hover {
+  background: rgba(51, 65, 85, 0.95);
+}
+
+[data-theme="night"] .btn--ghost {
+  color: #e2e8f0;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+[data-theme="night"] .btn--ghost:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.16);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 [data-theme="night"] .hero-stat {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-
-[data-theme="night"] .scene-btn {
-  background: rgba(255, 255, 255, 0.08);
-  color: #f1f5f9;
+  background: rgba(30, 41, 59, 0.8);
   border-color: rgba(255, 255, 255, 0.15);
 }
 
+[data-theme="night"] .hero-stat__label {
+  color: #cbd5e1;
+}
+
+[data-theme="night"] .hero-stat__value {
+  color: #ffffff;
+}
+
+[data-theme="night"] .scene-btn {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: #f8fafc;
+}
+
 [data-theme="night"] .scene-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(51, 65, 85, 0.95);
+  border-color: #60a5fa;
+}
+
+[data-theme="night"] .dcard__name {
+  color: #ffffff;
+}
+
+[data-theme="night"] .dcard__tag,
+[data-theme="night"] .dcard__ctl-label,
+[data-theme="night"] .dcard__note,
+[data-theme="night"] .zone__meta,
+[data-theme="night"] .sys {
+  color: #cbd5e1;
+}
+
+[data-theme="night"] .dcard__state {
+  color: #f1f5f9;
 }
 
 /* Theme Toggle Button */
@@ -1977,8 +2049,8 @@ select.field {
 }
 
 [data-theme="night"] .greeting-badge {
-  color: #a855f7;
-  background: rgba(168, 85, 247, 0.16);
+  color: #c084fc;
+  background: rgba(168, 85, 247, 0.22);
 }
 
 .hero-banner__title {
