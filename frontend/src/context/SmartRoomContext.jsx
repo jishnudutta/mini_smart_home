@@ -74,8 +74,17 @@ export function SmartRoomProvider({ children }) {
           }
           if (msg.event === 'device_update' && msg.device) {
             const current = devicesRef.current.find((d) => d.id === msg.device.id)
-            const update = current?.pending ? { ...msg.device, pending: undefined } : msg.device
-            upsertDevice(update)
+            const pending = current?.pending
+            if (pending) {
+              const matches =
+                (pending.command === 'power' && msg.device.state?.power === pending.value) ||
+                (pending.command === 'color' && msg.device.state?.color === pending.value) ||
+                (pending.command === 'brightness' && msg.device.state?.brightness === pending.value) ||
+                (pending.command === 'speed' && msg.device.state?.speed === pending.value)
+              if (matches) upsertDevice({ ...msg.device, pending: undefined })
+            } else {
+              upsertDevice(msg.device)
+            }
           }
           if (msg.event === 'device_renamed' && msg.device) upsertDevice(msg.device)
           if (msg.event === 'device_removed' && msg.deviceId) {
@@ -127,7 +136,7 @@ export function SmartRoomProvider({ children }) {
               : command === 'color'
                 ? { ...d.state, color: value }
                 : d.state
-          return { ...d, state: optimisticState, pending: { command } }
+          return { ...d, state: optimisticState, pending: { command, value } }
         }),
       )
 
