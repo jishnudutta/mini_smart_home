@@ -26,9 +26,9 @@ Open `config.h` in the sketch folder and set the real values:
 const char* WIFI_SSID = "the-wifi-name-at-school";   // or a phone hotspot
 const char* WIFI_PASS = "the-wifi-password";
 
-// Your VPS — FastAPI + dashboard run there on port 9000. No "http://".
-const char* BACKEND_HOST = "203.0.113.10";   // or your domain, e.g. "api.jishworks.in"
-const uint16_t BACKEND_PORT = 9000;
+// Your VPS — FastAPI + dashboard run there. No "http://".
+const char* BACKEND_HOST = "smartroom.jishworks.in";   // gateway: dashboard + API
+const uint16_t BACKEND_PORT = 9000;                     // (direct API: api.smartroom.jishworks.in)
 ```
 
 - `BACKEND_HOST` is your **VPS address or domain** (or the LAN IP of any
@@ -99,7 +99,7 @@ backend appears.
 ```
 === Smart Room ESP32 node ===
 firmware v0.3.0 — by Jishworks - Jishnu Dutta - jishworks.in
-node: esp32_room_01   backend: 203.0.113.10:9000
+node: esp32_room_01   backend: smartroom.jishworks.in:9000
 [register] ok
 [devices] map refreshed: N device(s)
 ```

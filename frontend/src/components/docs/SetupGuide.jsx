@@ -66,11 +66,11 @@ const STEPS = [
     icon: Rocket,
     title: 'Go live',
     detail: 'The container stack serves the dashboard and the API from one origin. The ESP32 dials the same published port.',
-    code: `docker compose up -d --build\n# dashboard: http://<vps-ip>:9000  ·  API: http://<vps-ip>:9000/api/status`,
+    code: `docker compose up -d --build\n# dashboard: https://smartroom.jishworks.in  ·  API: http://api.smartroom.jishworks.in/api/status`,
     options: [
       {
         label: 'ESP32 → deployed backend',
-        code: '# set the VPS address and port, then reflash\nconst char* BACKEND_HOST = "<vps-ip-or-domain>";   // no http:// — the firmware adds it\nconst uint16_t BACKEND_PORT = 9000;',
+        code: 'const char* BACKEND_HOST = "smartroom.jishworks.in";   // no http://\nconst uint16_t BACKEND_PORT = 9000;',
       },
     ],
     note: 'v0.1 has no authentication — put TLS in front (Caddy / certbot + nginx) and add auth before exposing port 9000 to the public internet.',

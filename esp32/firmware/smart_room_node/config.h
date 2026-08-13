@@ -25,14 +25,15 @@ const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
 
 // Where the backend lives — the ESP32 must be able to reach it over the
 // network, and "localhost" will NOT work (the ESP32 is a different
-// computer).
-//   Local:   the LAN IP of the machine running backend/run.py, started with
-//            BACKEND_HOST=0.0.0.0 (see ../README.md).
-//   Remote:  your VPS address or domain, with the published port — 9000 for
-//            the Docker stack (see DEPLOY.md).
-// No "http://" — the firmware adds the scheme itself.
-const char* BACKEND_HOST = "192.168.1.50";   // LAN IP — or your VPS address
-const uint16_t BACKEND_PORT = 8000;          // 9000 when using the Docker stack
+// computer). No "http://" — the firmware adds the scheme itself.
+//   VPS (default): smartroom.jishworks.in:9000 — the nginx gateway
+//                  (dashboard + API + WebSocket on one origin)
+//   VPS (alt):     api.smartroom.jishworks.in — the API directly (your
+//                  proxy maps this subdomain to the VPS's 9001)
+//   Local:         the LAN IP of the machine running backend/run.py,
+//                  started with BACKEND_HOST=0.0.0.0 (see ../README.md).
+const char* BACKEND_HOST = "smartroom.jishworks.in";  // VPS gateway domain
+const uint16_t BACKEND_PORT = 9000;                   // the gateway's port
 
 // Must match the node the backend expects (NODE_ID in backend/.env.example).
 const char* NODE_ID = "esp32_room_01";

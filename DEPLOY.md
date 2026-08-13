@@ -25,15 +25,21 @@ the browser only ever talks to one origin (port 9000 by default).
 docker compose up -d --build
 ```
 
-- Dashboard: `http://<vps-ip>:9000/` (Docs page → interactive circuit lab, API playground, setup guide)
-- API (via gateway): `http://<vps-ip>:9000/api/status`
-- API docs (via gateway): `http://<vps-ip>:9000/docs` (proxied through nginx)
-- Health: `http://<vps-ip>:9000/api/health` (liveness/readiness — the stack's
-  container healthchecks probe this endpoint, and nginx waits for the
+- Dashboard: `https://smartroom.jishworks.in/` (via your proxy → VPS:9000)
+  — Docs page → interactive circuit lab, API playground, setup guide
+- API (via gateway): `https://smartroom.jishworks.in/api/status`
+- API docs (via gateway): `https://smartroom.jishworks.in/docs` (proxied through nginx)
+- Health: `https://smartroom.jishworks.in/api/health` (liveness/readiness — the
+  stack's container healthchecks probe this endpoint, and nginx waits for the
   backend to report healthy before it starts)
-- **API direct: `http://<vps-ip>:9001/api/status`** — the backend is published
-  directly on **9001** (no nginx in between). FastAPI answers `/api/*`,
-  `/docs`, and `/ws` here — handy for `curl`, scripts, and other tools.
+- **API direct: `http://api.smartroom.jishworks.in/api/status`** — the
+  backend is published directly on the VPS port **9001** (no nginx in
+  between), and your proxy maps the `api.smartroom.jishworks.in` subdomain
+  to it — no port suffix in the URL. FastAPI answers `/api/*`, `/docs`, and
+  `/ws` here — handy for `curl`, scripts, and other tools.
+
+(Replace the domains with `http://<vps-ip>:9000` / `:9001` to test by IP
+before DNS/proxy is in place.)
 
 Change the published ports by editing the `ports:` lines in
 `docker-compose.yml` — `"9000:80"` → `"9001:80"` for the dashboard, etc.
