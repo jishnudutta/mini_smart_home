@@ -292,8 +292,7 @@ static bool fetchDevices() {
     } else if (dev.type == "rgb") {
       for (size_t p = 0; p < dev.pinCount; p++) {
         pinMode(dev.pins[p], OUTPUT);
-        ledcSetup(p, 5000, 8);
-        ledcAttachPin(dev.pins[p], p);
+        ledcAttach(dev.pins[p], 5000, 8);
         ledcWrite(p, 0);
       }
       if (dev.power) {
