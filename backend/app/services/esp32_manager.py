@@ -69,6 +69,8 @@ def _as_obj(item: Any) -> Any:
     return SimpleNamespace(**{**defaults, **item})
 
 
+from app.services.broadcast import broadcast_event
+
 def register(session: Session, node_id: str, registrations: list) -> list[dict[str, Any]]:
     from app.services import device_manager
 
@@ -76,17 +78,24 @@ def register(session: Session, node_id: str, registrations: list) -> list[dict[s
     node = _get_node(node_id)
     node.last_seen = datetime.now(timezone.utc)
     node.device_ids = {r.id for r in registrations}
-    return device_manager.register_devices(session, node_id, registrations)
+    res = device_manager.register_devices(session, node_id, registrations)
+    broadcast_event("node_status", online=True, nodeId=node_id, activeNodes=list(_nodes.keys()))
+    return res
 
 
 def report(session: Session, node_id: str, reports: list) -> list[dict[str, Any]]:
     from app.services import device_manager
 
+    was_empty = len(_nodes) == 0
+    is_new = node_id not in _nodes
     reports = [_as_obj(r) for r in reports]
     node = _get_node(node_id)
     node.last_seen = datetime.now(timezone.utc)
     node.device_ids.update(r.id for r in reports)
-    return device_manager.report_states(session, node_id, reports)
+    res = device_manager.report_states(session, node_id, reports)
+    if is_new or was_empty:
+        broadcast_event("node_status", online=True, nodeId=node_id, activeNodes=list(_nodes.keys()))
+    return res
 
 
 def enqueue_command(
@@ -120,11 +129,11 @@ def pop_commands(node_id: str) -> list[dict[str, Any]]:
 
 
 async def watchdog_loop() -> None:
-    """Mark the devices of silent nodes offline."""
+    """Mark the devices of silent nodes offline and broadcast status changes."""
     from app.services import device_manager
 
     while True:
-        await asyncio.sleep(15)
+        await asyncio.sleep(5)
         now = datetime.now(timezone.utc)
         stale = [
             node_id
@@ -145,3 +154,11 @@ async def watchdog_loop() -> None:
             except Exception:
                 logger.exception("watchdog failed for node %s", node_id)
             _nodes.pop(node_id, None)
+
+        active_ids = list(_nodes.keys())
+        broadcast_event(
+            "node_status",
+            online=len(active_ids) > 0,
+            nodeId=active_ids[0] if active_ids else config.DEFAULT_NODE_ID,
+            activeNodes=active_ids,
+        )

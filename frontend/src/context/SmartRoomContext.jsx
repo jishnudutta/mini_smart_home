@@ -65,6 +65,13 @@ export function SmartRoomProvider({ children }) {
       ws.onmessage = (ev) => {
         try {
           const msg = JSON.parse(ev.data)
+          if (msg.event === 'node_status') {
+            setStatus((prev) => ({
+              ...prev,
+              online: msg.online,
+              nodeId: msg.nodeId,
+            }))
+          }
           if (msg.event === 'device_update' && msg.device) upsertDevice(msg.device)
           if (msg.event === 'device_renamed' && msg.device) upsertDevice(msg.device)
           if (msg.event === 'device_removed' && msg.deviceId) {
