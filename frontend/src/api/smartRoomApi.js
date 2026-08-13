@@ -72,6 +72,17 @@ export const smartRoomApi = {
   },
 
   get websocketUrl() {
-    return `${API_URL.replace(/^http/, 'ws')}/ws`
+    if (API_URL) {
+      if (API_URL.startsWith('https://')) {
+        return `${API_URL.replace(/^https:\/\//, 'wss://')}/ws`
+      }
+      if (API_URL.startsWith('http://')) {
+        return `${API_URL.replace(/^http:\/\//, 'ws://')}/ws`
+      }
+      return `${API_URL}/ws`
+    }
+    const protocol = typeof window !== 'undefined' && window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+    const host = typeof window !== 'undefined' ? window.location.host : 'localhost'
+    return `${protocol}//${host}/ws`
   },
 }
