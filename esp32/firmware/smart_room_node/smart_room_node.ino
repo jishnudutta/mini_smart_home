@@ -28,6 +28,12 @@
  *   - BETTER DIAGNOSTICS: registration failures print the backend's reply,
  *     and register retries back off while the backend is down.
  *
+ * v0.3 adds STANDALONE MODE: if no backend answers within
+ * FALLBACK_AFTER_MS, the node switches to the built-in device map in
+ * config.h and drives the model directly — `on <id>` / `off <id>` from the
+ * serial console. No backend required. It keeps re-registering quietly and
+ * switches back the moment a backend appears.
+ *
  * Edit config.h for Wi-Fi, backend address, node id, and the sensor model.
  *
  * Libraries (Arduino Library Manager, or see platformio.ini):
@@ -63,6 +69,10 @@ struct NodeDevice {
 
 NodeDevice g_devices[MAX_DEVICES];
 size_t g_numDevices = 0;
+
+// True while running on the built-in device map (no backend reachable).
+static bool g_standalone = false;
+static unsigned long g_bootMs = 0;
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -363,13 +373,47 @@ static void readSensors() {
 }
 
 // ---------------------------------------------------------------------------
+// Standalone fallback — runs the model with just the ESP32 when the backend
+// is unreachable. The built-in device map lives in config.h.
+// ---------------------------------------------------------------------------
+
+static void enableStandalone() {
+  g_standalone = true;
+  g_numDevices = 0;
+  for (size_t i = 0; i < FALLBACK_DEVICE_COUNT && i < MAX_DEVICES; i++) {
+    g_devices[i].id = FALLBACK_DEVICES[i].id;
+    g_devices[i].type = FALLBACK_DEVICES[i].type;
+    g_devices[i].pin = FALLBACK_DEVICES[i].pin;
+    g_devices[i].power = false;
+    g_numDevices++;
+  }
+  for (size_t i = 0; i < g_numDevices; i++) {
+    NodeDevice& dev = g_devices[i];
+    if (dev.type == "sensor" || dev.type == "motion") {
+      pinMode(dev.pin, INPUT);
+    } else {
+      pinMode(dev.pin, OUTPUT);
+      digitalWrite(dev.pin, LOW);
+    }
+  }
+  Serial.println("[standalone] backend unreachable — built-in device map active");
+  Serial.println("[standalone] drive it with `on <id>` / `off <id>` (type help)");
+  for (size_t i = 0; i < g_numDevices; i++) {
+    Serial.printf("  - %s (%s) gpio %u\n",
+                  g_devices[i].id.c_str(), g_devices[i].type.c_str(),
+                  g_devices[i].pin);
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Serial console — diagnostics without a reflash.
-//   help / status / devices / reboot
+//   help / status / devices / on <id> / off <id> / reboot
 // ---------------------------------------------------------------------------
 
 static void printStatus() {
   Serial.printf("node:      %s\n", NODE_ID);
   Serial.printf("firmware:  v%s %s\n", FIRMWARE_VERSION, FIRMWARE_BY);
+  Serial.printf("mode:      %s\n", g_standalone ? "standalone (no backend)" : "backend");
   Serial.printf("backend:   %s:%u\n", BACKEND_HOST, BACKEND_PORT);
   Serial.printf("wifi:      %s (rssi %d dBm)\n",
                 WiFi.status() == WL_CONNECTED ? "connected" : "disconnected",
@@ -388,7 +432,7 @@ static void handleSerial() {
       if (line.length()) {
         Serial.printf("> %s\n", line.c_str());
         if (line == "help") {
-          Serial.println("commands: help | status | devices | reboot");
+          Serial.println("commands: help | status | devices | on <id> | off <id> | reboot");
         } else if (line == "status") {
           printStatus();
         } else if (line == "devices") {
@@ -405,6 +449,27 @@ static void handleSerial() {
               Serial.printf("  power %s", d.power ? "ON" : "OFF");
             }
             Serial.println();
+          }
+        } else if (line.startsWith("on ") || line.startsWith("off ")) {
+          // Standalone driving: turn a model device on/off from the console.
+          String id = line.substring(3);
+          id.trim();
+          if (!id.length()) {
+            Serial.println("usage: on <device id> | off <device id>");
+          } else if (!g_standalone) {
+            Serial.println("backend mode — control devices from the dashboard");
+          } else {
+            NodeDevice* d = findDevice(id.c_str());
+            if (d == nullptr) {
+              Serial.println("unknown device — type devices");
+            } else if (d->type == "sensor" || d->type == "motion") {
+              Serial.println("that device is an input — it can't be driven");
+            } else {
+              bool on = line.startsWith("on ");
+              setPower(d, on);
+              Serial.printf("[standalone] %s power -> %s\n",
+                            d->id.c_str(), on ? "ON" : "OFF");
+            }
           }
         } else if (line == "reboot") {
           Serial.println("rebooting…");
@@ -435,7 +500,12 @@ void setup() {
   Serial.printf("node: %s   backend: %s:%u\n", NODE_ID, BACKEND_HOST, BACKEND_PORT);
   Serial.printf("sensor model: DHT%d (edit config.h to switch)\n", DHT_MODEL == DHT11 ? 11 : 22);
   Serial.println("devices: fetched from backend (not hard-coded)");
+  if (FALLBACK_AFTER_MS > 0) {
+    Serial.printf("fallback: standalone device map after %lus (works without Wi-Fi)\n",
+                  FALLBACK_AFTER_MS / 1000);
+  }
   Serial.println("serial console: type help for commands");
+  g_bootMs = millis();
 
   ensureWiFi();
   // Registration and the device map are fetched from loop(), so a briefly
@@ -464,9 +534,22 @@ void loop() {
   }
 
   if (WiFi.status() != WL_CONNECTED) {
+    // No Wi-Fi at all: fall back to standalone anyway, so the model runs
+    // with just the ESP32 (school demo / bench). It keeps trying to join
+    // the network in the background and upgrades when it can.
+    if (!g_standalone && FALLBACK_AFTER_MS > 0 &&
+        millis() - g_bootMs >= FALLBACK_AFTER_MS) {
+      enableStandalone();
+    }
     if (millis() - lastWifi >= WIFI_RETRY_MS) {
       lastWifi = millis();
       ensureWiFi();
+    }
+    if (g_standalone) {
+      if (millis() - lastSensors >= SENSOR_READ_MS) {
+        lastSensors = millis();
+        readSensors();
+      }
     }
     return;
   }
@@ -485,13 +568,35 @@ void loop() {
 
   if (!registered) {
     // Register retries back off (10 s -> 30 s) so a down backend doesn't
-    // hammer the network; any success resets the cadence.
+    // hammer the network; any success resets the cadence. If the backend
+    // never answers, switch to the standalone built-in device map so the
+    // model still works with just the ESP32 (see config.h).
+    if (!g_standalone && FALLBACK_AFTER_MS > 0 &&
+        millis() - g_bootMs >= FALLBACK_AFTER_MS) {
+      enableStandalone();
+    }
     if (millis() - lastRegister >= registerRetryMs) {
       lastRegister = millis();
       registered = registerWithBackend();
-      registerRetryMs = registered
-        ? REGISTER_RETRY_MS
-        : min(registerRetryMs * 2, REGISTER_RETRY_MAX_MS);
+      if (registered) {
+        registerRetryMs = REGISTER_RETRY_MS;
+        if (g_standalone) {
+          Serial.println("[net] backend reachable — leaving standalone mode");
+          g_standalone = false;
+        }
+        lastDevices = 0;   // fetch the real device map right away
+      } else {
+        // Slower, quieter retries once standalone — no point hammering a
+        // network that isn't answering, and no false Wi-Fi cycling.
+        const unsigned long cap = g_standalone ? 60000UL : REGISTER_RETRY_MAX_MS;
+        registerRetryMs = min(registerRetryMs * 2, cap);
+      }
+    }
+    if (!g_standalone) return;
+    // Standalone: keep sampling the model's sensors while waiting.
+    if (millis() - lastSensors >= SENSOR_READ_MS) {
+      lastSensors = millis();
+      readSensors();
     }
     return;
   }

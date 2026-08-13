@@ -70,7 +70,7 @@ const STEPS = [
     options: [
       {
         label: 'ESP32 → deployed backend',
-        code: '# set BACKEND_HOST to the VPS address and reflash\nconst char* BACKEND_HOST = "http://<vps-ip>:9000";',
+        code: '# set the VPS address and port, then reflash\nconst char* BACKEND_HOST = "<vps-ip-or-domain>";   // no http:// — the firmware adds it\nconst uint16_t BACKEND_PORT = 9000;',
       },
     ],
     note: 'v0.1 has no authentication — put TLS in front (Caddy / certbot + nginx) and add auth before exposing port 9000 to the public internet.',

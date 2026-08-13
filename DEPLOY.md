@@ -26,20 +26,24 @@ docker compose up -d --build
 ```
 
 - Dashboard: `http://<vps-ip>:9000/` (Docs page → interactive circuit lab, API playground, setup guide)
-- API: `http://<vps-ip>:9000/api/status`
-- API docs: `http://<vps-ip>:9000/docs` (proxied through nginx)
+- API (via gateway): `http://<vps-ip>:9000/api/status`
+- API docs (via gateway): `http://<vps-ip>:9000/docs` (proxied through nginx)
 - Health: `http://<vps-ip>:9000/api/health` (liveness/readiness — the stack's
   container healthchecks probe this endpoint, and nginx waits for the
   backend to report healthy before it starts)
+- **API direct: `http://<vps-ip>:9001/api/status`** — the backend is published
+  directly on **9001** (no nginx in between). FastAPI answers `/api/*`,
+  `/docs`, and `/ws` here — handy for `curl`, scripts, and other tools.
 
-Change the published port by editing the `ports:` line in
-`docker-compose.yml` — `"9000:80"` → `"9001:80"` for 9001, etc.
+Change the published ports by editing the `ports:` lines in
+`docker-compose.yml` — `"9000:80"` → `"9001:80"` for the dashboard, etc.
 
 ## Verify it works
 
 ```bash
 curl http://127.0.0.1:9000/api/status        # {"online":false,"deviceCount":0,...}
 curl http://127.0.0.1:9000/api/devices       # {"devices":[]} — empty until hardware checks in
+curl http://127.0.0.1:9001/api/status        # same via the direct API port
 ```
 
 ```bash
@@ -67,7 +71,8 @@ In `esp32/firmware/smart_room_node/config.h`, set `BACKEND_HOST` to the VPS
 address and recompile/upload:
 
 ```cpp
-#define BACKEND_HOST "http://<vps-ip>:9000"
+const char* BACKEND_HOST = "<vps-ip-or-domain>";  // no http:// — the firmware adds it
+const uint16_t BACKEND_PORT = 9000;
 ```
 
 The node registers, fetches its device map, and polls commands through the same

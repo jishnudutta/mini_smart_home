@@ -10,7 +10,7 @@
 // Branding (shown in the boot banner and serial output)
 // ---------------------------------------------------------------------------
 
-#define FIRMWARE_VERSION "0.2.0"
+#define FIRMWARE_VERSION "0.3.0"
 #define FIRMWARE_BY "by Jishworks - Jishnu Dutta - jishworks.in"
 
 // ---------------------------------------------------------------------------
@@ -23,12 +23,16 @@
 const char* WIFI_SSID = "YOUR_WIFI_SSID";
 const char* WIFI_PASS = "YOUR_WIFI_PASSWORD";
 
-// The machine running backend/run.py, by LAN address. "localhost" will NOT
-// work — the ESP32 is a different computer. This is the address `ipconfig`
-// shows on the machine that runs the backend. Run the backend with
-// BACKEND_HOST=0.0.0.0 so it listens on the network (see ../README.md).
-const char* BACKEND_HOST = "192.168.1.50";   // LAN IP of the backend machine
-const uint16_t BACKEND_PORT = 8000;
+// Where the backend lives — the ESP32 must be able to reach it over the
+// network, and "localhost" will NOT work (the ESP32 is a different
+// computer).
+//   Local:   the LAN IP of the machine running backend/run.py, started with
+//            BACKEND_HOST=0.0.0.0 (see ../README.md).
+//   Remote:  your VPS address or domain, with the published port — 9000 for
+//            the Docker stack (see DEPLOY.md).
+// No "http://" — the firmware adds the scheme itself.
+const char* BACKEND_HOST = "192.168.1.50";   // LAN IP — or your VPS address
+const uint16_t BACKEND_PORT = 8000;          // 9000 when using the Docker stack
 
 // Must match the node the backend expects (NODE_ID in backend/.env.example).
 const char* NODE_ID = "esp32_room_01";
@@ -62,3 +66,32 @@ const unsigned long HARD_RESTART_AFTER_MS = 120000; // no backend contact -> reb
 
 // How many devices the node may drive at once (backend device-map cap too).
 #define MAX_DEVICES 16
+
+// ---------------------------------------------------------------------------
+// 4. Standalone fallback (no backend — school demo / bench testing)
+// ---------------------------------------------------------------------------
+
+// The node normally fetches its device map from the backend. If the backend
+// can't be reached within this long after boot, the node switches to the
+// built-in table below and drives the model directly — toggle devices from
+// the serial console with `on <id>` / `off <id>` (type help). Set to 0 to
+// disable the fallback and always wait for the backend.
+const unsigned long FALLBACK_AFTER_MS = 30000;
+
+struct FallbackDevice {
+  const char* id;
+  const char* type;
+  uint8_t pin;
+};
+
+// Built-in demo map — mirrors the reference wiring (see esp32/README.md).
+// Edit the pins to match YOUR model's wiring. Sensor/motion entries are read
+// (not driven); everything else is driven as an output.
+const FallbackDevice FALLBACK_DEVICES[] = {
+  {"light_01",    "light",  2},   // onboard blue LED
+  {"room_light",  "light", 16},
+  {"corner_lamp", "light", 17},
+  {"fan_01",      "fan",   26},
+  {"dht11_01",    "sensor", 4},
+};
+const size_t FALLBACK_DEVICE_COUNT = sizeof(FALLBACK_DEVICES) / sizeof(FallbackDevice);

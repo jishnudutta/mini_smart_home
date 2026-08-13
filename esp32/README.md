@@ -143,10 +143,33 @@ Monitor) and type commands — no reflash needed:
 
 ```
 help      # this list
-status    # node, backend, Wi-Fi RSSI, heap, uptime, fail streak
+status    # node, backend, mode, Wi-Fi RSSI, heap, uptime, fail streak
 devices   # the live device map, including current sensor / motion readings
+on <id>   # standalone mode: turn a device on  (e.g. `on room_light`)
+off <id>  # standalone mode: turn a device off (e.g. `off fan_01`)
 reboot    # restart the node
 ```
+
+## Standalone mode (no backend — school demo / bench testing)
+
+The node normally fetches its device map from the backend — it drives
+*nothing* until it registers. If no backend answers within
+`FALLBACK_AFTER_MS` (30 s by default), it switches to the **built-in device
+map in `config.h`** and drives the model directly. You control it from the
+serial console:
+
+```
+on light_01      # → the onboard blue LED lights
+on fan_01        # → the fan starts (via the transistor gate on GPIO26)
+status           # → mode: standalone (no backend)
+devices          # → live map incl. DHT temperature/humidity
+```
+
+It keeps retrying registration quietly and **switches back automatically**
+the moment a backend appears. Set `FALLBACK_AFTER_MS = 0` in `config.h` to
+disable the fallback (always wait for the backend). The built-in demo map
+mirrors the reference wiring — edit the pins in `FALLBACK_DEVICES` to match
+your own model.
 
 ## Verify it end to end
 

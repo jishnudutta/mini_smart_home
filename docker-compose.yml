@@ -22,6 +22,12 @@ services:
       NODE_TIMEOUT_SECONDS: "60"
     volumes:
       - smartroom-data:/app/data
+    # Direct API access on host port 9001 — FastAPI answers /api/*, /docs and
+    # /ws here without the nginx gateway (handy for curl, scripts, and other
+    # tools). The dashboard keeps using 9000. Change the left-hand side to
+    # use another port.
+    ports:
+      - "9001:8000"
     restart: unless-stopped
     networks:
       - smartroom
