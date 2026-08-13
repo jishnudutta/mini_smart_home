@@ -105,21 +105,45 @@ export function SmartRoomProvider({ children }) {
 
   // --- actions -----------------------------------------------------------
 
-  // No optimistic flips: the plan says a command only counts once the
-  // backend confirms it. The card shows a pending state meanwhile.
+  // Optimistic update: flip the device state immediately so the UI responds
+  // instantly, then confirm with the server. If the server rejects the command
+  // we roll back to the previous state and surface the error.
   const sendCommand = useCallback(
     async (deviceId, command, value) => {
-      updateDevices((prev) =>
-        prev.map((d) => (d.id === deviceId ? { ...d, pending: { command } } : d)),
+      // Snapshot previous state for rollback
+      const prev = devicesRef.current.find((d) => d.id === deviceId)
+
+      // Apply optimistic state immediately
+      updateDevices((list) =>
+        list.map((d) => {
+          if (d.id !== deviceId) return d
+          const optimisticState =
+            command === 'power'
+              ? { ...d.state, power: value }
+              : command === 'color'
+                ? { ...d.state, color: value }
+                : d.state
+          return { ...d, state: optimisticState, pending: { command } }
+        }),
       )
+
       try {
         const res = await smartRoomApi.sendDeviceCommand(deviceId, command, value)
-        upsertDevice({ ...res.device, pending: undefined })
+        updateDevices((list) =>
+          list.map((d) => (d.id === deviceId ? { ...d, pending: undefined } : d)),
+        )
         return res
       } catch (e) {
-        updateDevices((prev) =>
-          prev.map((d) => (d.id === deviceId ? { ...d, pending: undefined } : d)),
-        )
+        // Roll back to the state before the optimistic flip
+        if (prev) {
+          updateDevices((list) =>
+            list.map((d) => (d.id === deviceId ? { ...prev, pending: undefined } : d)),
+          )
+        } else {
+          updateDevices((list) =>
+            list.map((d) => (d.id === deviceId ? { ...d, pending: undefined } : d)),
+          )
+        }
         throw e
       }
     },

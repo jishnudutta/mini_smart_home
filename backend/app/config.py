@@ -36,7 +36,7 @@ NODE_TIMEOUT_SECONDS = float(os.getenv("NODE_TIMEOUT_SECONDS", "60"))
 # development (SIMULATOR_ENABLED=true).
 
 SIMULATOR_ENABLED = _env_bool("SIMULATOR_ENABLED", "false")
-SIM_REPORT_INTERVAL = float(os.getenv("SIM_REPORT_INTERVAL", "5"))     # state report cadence (s)
+SIM_REPORT_INTERVAL = float(os.getenv("SIM_REPORT_INTERVAL", "1"))
 SIM_READING_INTERVAL = float(os.getenv("SIM_READING_INTERVAL", "30"))  # history row cadence (s)
 SIM_TEMP_BASE = float(os.getenv("SIM_TEMP_BASE", "27.6"))
 SIM_TEMP_AMPLITUDE = float(os.getenv("SIM_TEMP_AMPLITUDE", "0.8"))
