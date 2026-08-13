@@ -28,7 +28,7 @@ PORT = int(os.getenv("BACKEND_PORT", "8000"))
 DEFAULT_NODE_ID = os.getenv("NODE_ID", "esp32_room_01")
 
 # A node that stops reporting for this long has its devices marked offline.
-NODE_TIMEOUT_SECONDS = float(os.getenv("NODE_TIMEOUT_SECONDS", "60"))
+NODE_TIMEOUT_SECONDS = float(os.getenv("NODE_TIMEOUT_SECONDS", "15"))
 
 # --- simulator (virtual ESP32 node) ----------------------------------------
 # Off by default: the system is dynamic — only devices a real node registers
