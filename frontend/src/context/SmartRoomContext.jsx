@@ -72,7 +72,10 @@ export function SmartRoomProvider({ children }) {
               nodeId: msg.nodeId,
             }))
           }
-          if (msg.event === 'device_update' && msg.device) upsertDevice(msg.device)
+          if (msg.event === 'device_update' && msg.device) {
+            const current = devicesRef.current.find((d) => d.id === msg.device.id)
+            if (!current?.pending) upsertDevice(msg.device)
+          }
           if (msg.event === 'device_renamed' && msg.device) upsertDevice(msg.device)
           if (msg.event === 'device_removed' && msg.deviceId) {
             updateDevices((prev) => prev.filter((d) => d.id !== msg.deviceId))
