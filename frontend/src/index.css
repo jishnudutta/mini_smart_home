@@ -2053,6 +2053,278 @@ select.field {
   background: rgba(168, 85, 247, 0.22);
 }
 
+/* ============================================================
+   Night theme — docs (tabs, circuit lab, API playground,
+   setup guide, code blocks, chips, form fields)
+   ============================================================ */
+
+/* ---------- tabs ---------- */
+
+[data-theme="night"] .tabs {
+  background: rgba(15, 23, 42, 0.85);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="night"] .tabs__btn {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .tabs__btn:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+/* ---------- circuit lab ---------- */
+
+[data-theme="night"] .clab__legend {
+  background: rgba(15, 23, 42, 0.75);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: #94a3b8;
+}
+
+[data-theme="night"] .clab__canvas,
+[data-theme="night"] .clab__block {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="night"] .clab__block-label {
+  color: #64748b;
+}
+
+[data-theme="night"] .clab__hint {
+  color: #64748b;
+}
+
+[data-theme="night"] .clab__pinsel {
+  background: rgba(59, 130, 246, 0.12);
+  border-color: rgba(59, 130, 246, 0.35);
+}
+
+[data-theme="night"] .clab__pinsel-side {
+  color: #64748b;
+}
+
+[data-theme="night"] .clab__pinsel-ref {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .clab__warn {
+  background: rgba(249, 115, 22, 0.12);
+  border-color: rgba(249, 115, 22, 0.35);
+}
+
+[data-theme="night"] .clab__warn p {
+  color: #fb923c;
+}
+
+[data-theme="night"] .clab__parts,
+[data-theme="night"] .clab__notes {
+  color: #94a3b8;
+}
+
+/* ---------- chips ---------- */
+
+[data-theme="night"] .chip {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #cbd5e1;
+}
+
+[data-theme="night"] .chip:hover {
+  border-color: rgba(96, 165, 250, 0.55);
+  color: #f1f5f9;
+}
+
+[data-theme="night"] .chip__pin {
+  background: rgba(51, 65, 85, 0.9);
+  color: #94a3b8;
+}
+
+/* ---------- API playground ---------- */
+
+[data-theme="night"] .play__list,
+[data-theme="night"] .play__req,
+[data-theme="night"] .play__res {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="night"] .play__ep:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="night"] .play__ep--active {
+  background: rgba(59, 130, 246, 0.14);
+  outline-color: rgba(96, 165, 250, 0.45);
+}
+
+[data-theme="night"] .play__path {
+  color: #cbd5e1;
+}
+
+[data-theme="night"] .play__pathbig {
+  color: #f1f5f9;
+}
+
+[data-theme="night"] .play__summary {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .play__mut {
+  color: #fb923c;
+  background: rgba(249, 115, 22, 0.18);
+}
+
+[data-theme="night"] .play__reslabel {
+  color: #64748b;
+}
+
+[data-theme="night"] .play__meta {
+  color: #64748b;
+}
+
+[data-theme="night"] .play__code--ok {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.14);
+}
+
+[data-theme="night"] .play__code--bad {
+  color: #fb923c;
+  background: rgba(249, 115, 22, 0.16);
+}
+
+[data-theme="night"] .play__empty {
+  color: #64748b;
+}
+
+/* HTTP method badges */
+[data-theme="night"] .m--get  { color: #34d399; background: rgba(52, 211, 153, 0.16); }
+[data-theme="night"] .m--post { color: #60a5fa; background: rgba(96, 165, 250, 0.16); }
+[data-theme="night"] .m--patch { color: #fbbf24; background: rgba(251, 191, 36, 0.16); }
+[data-theme="night"] .m--delete { color: #fb923c; background: rgba(249, 115, 22, 0.16); }
+
+/* ---------- setup guide ---------- */
+
+[data-theme="night"] .setup__meter {
+  background: rgba(30, 41, 59, 0.85);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #94a3b8;
+}
+
+[data-theme="night"] .setup__meter--done {
+  color: #34d399;
+  background: rgba(52, 211, 153, 0.12);
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+[data-theme="night"] .setup__item {
+  background: rgba(15, 23, 42, 0.88);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="night"] .setup__item--done {
+  border-color: rgba(52, 211, 153, 0.35);
+}
+
+[data-theme="night"] .setup__check {
+  border-right-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="night"] .setup__check:hover {
+  color: rgba(52, 211, 153, 0.55);
+}
+
+[data-theme="night"] .setup__item--done .setup__num {
+  background: rgba(52, 211, 153, 0.14);
+  color: #34d399;
+}
+
+[data-theme="night"] .setup__title {
+  color: #f1f5f9;
+}
+
+[data-theme="night"] .setup__item--done .setup__title {
+  color: #475569;
+}
+
+[data-theme="night"] .setup__body {
+  border-top-color: rgba(255, 255, 255, 0.07);
+}
+
+[data-theme="night"] .setup__detail {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .setup__opt-label {
+  color: #64748b;
+}
+
+[data-theme="night"] .setup__note {
+  background: rgba(249, 115, 22, 0.1);
+  border-color: rgba(249, 115, 22, 0.28);
+  color: #fb923c;
+}
+
+/* ---------- code blocks ---------- */
+
+/* .code pre and .play__json already use the dark #0d1b33 bg — fine in both modes.
+   But the copy button needs a night-mode tint. */
+[data-theme="night"] .code__copy {
+  color: rgba(148, 163, 184, 0.7);
+}
+
+[data-theme="night"] .code__copy:hover {
+  color: #f1f5f9;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/* ---------- form fields (used in API playground) ---------- */
+
+[data-theme="night"] .field {
+  background: rgba(15, 23, 42, 0.9);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: #f1f5f9;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.25);
+}
+
+[data-theme="night"] .field:focus {
+  border-color: #60a5fa;
+  box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.2);
+}
+
+[data-theme="night"] .field-label {
+  color: #64748b;
+}
+
+[data-theme="night"] select.field option {
+  background: #1e293b;
+  color: #f1f5f9;
+}
+
+/* ---------- docs shared headings ---------- */
+
+[data-theme="night"] .clab__intro h3,
+[data-theme="night"] .play__intro h3,
+[data-theme="night"] .setup__head h3 {
+  color: #f8fafc;
+}
+
+[data-theme="night"] .clab__intro p,
+[data-theme="night"] .play__intro p,
+[data-theme="night"] .setup__head p {
+  color: #94a3b8;
+}
+
+[data-theme="night"] .play__intro code {
+  color: #60a5fa;
+}
+
+
 .hero-banner__title {
   font-family: var(--font-display);
   font-size: 26px;

@@ -225,8 +225,39 @@ function Schematic({ circuitKey, active }) {
   const railStub = (x, pinYpos, rail) =>
     `M 204 ${pinYpos} L ${x} ${pinYpos} L ${x} ${RAIL_Y[rail]} L ${RAIL_X0} ${RAIL_Y[rail]}`
 
-  // signal entry — dashed until a pin is chosen
-  const signalIn = (
+  // signal entry — dashed until a pin is chosen.
+  // RGB is special: it needs three separate GPIO entry lines (one per channel),
+  // so we suppress the generic single-line and let the rgb case body handle it.
+  const RGB_CHANNELS = [
+    { y: 230, tint: '#ef4444', label: 'GPIO-R' },
+    { y: SIGNAL_Y, tint: '#22c55e', label: 'GPIO-G' },
+    { y: 370, tint: '#3b82f6', label: 'GPIO-B' },
+  ]
+  const signalIn = circuitKey === 'rgb' ? (
+    <g>
+      {RGB_CHANNELS.map((ch) => (
+        <g key={ch.y}>
+          <line
+            x1={640} y1={ch.y} x2={204} y2={ch.y}
+            stroke={active ? ch.tint : DIM}
+            strokeWidth="2.2"
+            strokeDasharray={active ? 'none' : '5 5'}
+          />
+          {active && (
+            <text
+              x={648} y={ch.y + 4}
+              fontSize="10"
+              fontFamily="'IBM Plex Mono', monospace"
+              fill={ch.tint}
+              fontWeight="700"
+            >
+              {ch.label}
+            </text>
+          )}
+        </g>
+      ))}
+    </g>
+  ) : (
     <g>
       <line x1={640} y1={SIGNAL_Y} x2={204} y2={SIGNAL_Y} stroke={color} strokeWidth="2.2" strokeDasharray={active ? 'none' : '5 5'} />
       {active && (
@@ -270,10 +301,11 @@ function Schematic({ circuitKey, active }) {
         <g>
           <path d={railStub(236, 150, '3v3')} fill="none" stroke={RAIL_COLORS['3v3']} strokeWidth="2" />
           <path d={railStub(244, 230, 'gnd')} fill="none" stroke={RAIL_COLORS.gnd} strokeWidth="2" />
-          {/* DATA pull-up to 3V3 */}
+          {/* DATA pull-up: runs from DATA (y=300) up through GND-rail (Jump) to 3V3 (y=70) */}
+          {/* Pull-up resistor sits ABOVE the GND rail (between GND y=110 and 3V3 y=70) */}
           <path d="M 380 300 L 380 70" fill="none" stroke={RAIL_COLORS['3v3']} strokeWidth="2" />
           <Jump x={380} y={RAIL_Y.gnd} color={RAIL_COLORS['3v3']} />
-          <Resistor x={380} y={205} color={RAIL_COLORS['3v3']} w={44} />
+          <Resistor x={380} y={88} color={RAIL_COLORS['3v3']} w={44} />
         </g>
       )
       break
@@ -283,6 +315,8 @@ function Schematic({ circuitKey, active }) {
         <g>
           <path d={railStub(236, 150, '5v')} fill="none" stroke={RAIL_COLORS['5v']} strokeWidth="2" />
           <path d={railStub(244, 230, 'gnd')} fill="none" stroke={RAIL_COLORS.gnd} strokeWidth="2" />
+          {/* signal wire from DeviceCard (x=204) to relay IN pin (x=452) */}
+          <line x1={204} y1={SIGNAL_Y} x2={452} y2={SIGNAL_Y} stroke={color} strokeWidth="2" />
           {/* relay coil glyph — the IN wire drives it; module carries its own driver */}
           <g stroke={color} fill="none" strokeWidth="1.8" opacity="0.9">
             <rect x={452} y={278} width={52} height={44} rx={7} />
@@ -293,32 +327,104 @@ function Schematic({ circuitKey, active }) {
       break
     }
     case 'rgb': {
+      const rgbChannels = [
+        { y: 230, tint: '#ef4444', label: 'R' },
+        { y: SIGNAL_Y, tint: '#22c55e', label: 'G' },
+        { y: 370, tint: '#3b82f6', label: 'B' },
+      ]
       body = (
         <g>
+          {/* cathode → GND rail */}
           <path d={railStub(236, 150, 'gnd')} fill="none" stroke={RAIL_COLORS.gnd} strokeWidth="2" />
-          {[
-            { y: 230, tint: '#ef4444' },
-            { y: SIGNAL_Y, tint: '#22c55e' },
-            { y: 370, tint: '#3b82f6' },
-          ].map((ch) => (
+          {rgbChannels.map((ch) => (
             <g key={ch.y}>
-              <line x1={204} y1={ch.y} x2={620} y2={ch.y} stroke={color} strokeWidth="2" strokeDasharray="6 5" />
+              {/* GPIO entry wire (x=204) → resistor → LED anode dot (x=620) */}
+              <line x1={204} y1={ch.y} x2={620} y2={ch.y}
+                stroke={active ? ch.tint : DIM}
+                strokeWidth="2"
+                strokeDasharray={active ? 'none' : '6 5'}
+              />
               <Resistor x={400} y={ch.y} w={44} color={active ? ch.tint : DIM} />
               <circle cx={620} cy={ch.y} r={3.4} fill={active ? ch.tint : DIM} />
+              {/* channel label on the component side */}
+              {active && (
+                <text
+                  x={626} y={ch.y - 5}
+                  fontSize="9.5"
+                  fontFamily="'IBM Plex Mono', monospace"
+                  fill={ch.tint}
+                  fontWeight="700"
+                >
+                  {ch.label}
+                </text>
+              )}
             </g>
           ))}
-          <text x={640} y={SIGNAL_Y + 4} textAnchor="end" fontSize="10.5" fontFamily="'IBM Plex Mono', monospace" fill={active ? SIGNAL_COLOR : DIM} fontWeight="700">
-            ×3 GPIOs
-          </text>
         </g>
       )
       break
     }
     case 'motion': {
+      // PIR module glyph — a simple rectangle with VCC / GND / OUT labels
+      const pirX = 390
+      const pirW = 96
+      const pirH = 150
+      const pirY = 175  // centred between VCC(150) and GND(230) and OUT(300)
       body = (
         <g>
           <path d={railStub(236, 150, '3v3')} fill="none" stroke={RAIL_COLORS['3v3']} strokeWidth="2" />
           <path d={railStub(244, 230, 'gnd')} fill="none" stroke={RAIL_COLORS.gnd} strokeWidth="2" />
+          {/* PIR module body */}
+          <rect
+            x={pirX} y={pirY} width={pirW} height={pirH} rx={8}
+            fill={active ? 'rgba(14,165,233,0.07)' : 'rgba(30,55,110,0.04)'}
+            stroke={active ? 'rgba(14,165,233,0.55)' : DIM}
+            strokeWidth="1.6"
+          />
+          {/* dome / lens circle */}
+          <circle cx={pirX + pirW / 2} cy={pirY + 52} r={26}
+            fill={active ? 'rgba(14,165,233,0.1)' : 'rgba(30,55,110,0.05)'}
+            stroke={active ? 'rgba(14,165,233,0.5)' : DIM}
+            strokeWidth="1.4"
+          />
+          <text
+            x={pirX + pirW / 2} y={pirY + 57}
+            textAnchor="middle" fontSize="9" fontWeight="700"
+            fontFamily="'IBM Plex Mono', monospace"
+            fill={active ? 'rgba(14,165,233,0.85)' : DIM}
+          >
+            PIR
+          </text>
+          {/* module label */}
+          <text
+            x={pirX + pirW / 2} y={pirY + pirH - 10}
+            textAnchor="middle" fontSize="8.5"
+            fontFamily="'IBM Plex Mono', monospace"
+            fill={active ? 'rgba(14,165,233,0.7)' : DIM}
+          >
+            HC-SR501
+          </text>
+          {/* pin wires from DeviceCard (x=204) to module left edge */}
+          <line x1={204} y1={150} x2={pirX} y2={150} stroke={RAIL_COLORS['3v3']} strokeWidth="2" />
+          <line x1={204} y1={230} x2={pirX} y2={230} stroke={RAIL_COLORS.gnd} strokeWidth="2" />
+          <line x1={204} y1={SIGNAL_Y} x2={pirX} y2={SIGNAL_Y} stroke={color} strokeWidth="2" />
+          {/* pin dots on the module */}
+          {[
+            { y: 150, c: RAIL_COLORS['3v3'], lbl: 'VCC' },
+            { y: 230, c: RAIL_COLORS.gnd, lbl: 'GND' },
+            { y: SIGNAL_Y, c: active ? SIGNAL_COLOR : DIM, lbl: 'OUT' },
+          ].map((p) => (
+            <g key={p.lbl}>
+              <circle cx={pirX} cy={p.y} r={3.4} fill={p.c} />
+              <text
+                x={pirX + 6} y={p.y + 4}
+                fontSize="9" fontFamily="'IBM Plex Mono', monospace"
+                fill={p.c} fontWeight="600"
+              >
+                {p.lbl}
+              </text>
+            </g>
+          ))}
         </g>
       )
       break

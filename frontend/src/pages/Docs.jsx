@@ -4,6 +4,7 @@ import CircuitLab from '../components/docs/CircuitLab'
 import ApiPlayground from '../components/docs/ApiPlayground'
 import SetupGuide from '../components/docs/SetupGuide'
 import ConnectionStatus from '../components/ConnectionStatus'
+import ThemeToggle from '../components/ThemeToggle'
 import { useSmartRoom } from '../hooks/useSmartRoom'
 
 const TABS = [
@@ -27,6 +28,7 @@ export default function Docs({ onBack }) {
           <span className="brand__ver">v0.1</span>
         </div>
         <div className="header__right">
+          <ThemeToggle />
           <button type="button" className="btn btn--ghost btn--sm" onClick={onBack}>
             <ArrowLeft size={14} strokeWidth={2.25} /> Dashboard
           </button>
