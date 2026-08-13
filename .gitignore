@@ -1,0 +1,32 @@
+# Smart Room — root .gitignore
+# One repo for the whole stack: backend, frontend, esp32, docker.
+
+# --- secrets & local env ---------------------------------------------------
+# Never commit real credentials or machine-specific env files. Keep
+# *.env.example files (they are the documented templates).
+.env
+.env.*
+!.env.example
+
+# --- frontend ---------------------------------------------------------------
+node_modules/
+frontend/dist/
+
+# --- backend -----------------------------------------------------------------
+.venv/
+__pycache__/
+*.py[cod]
+
+# --- dev databases (regenerated at runtime; never commit the room's data) ----
+*.db
+*.db-shm
+*.db-wal
+
+# --- ESP32 build artifacts (isolated sketchbook + installed libraries) -------
+esp32/firmware/build/
+
+# --- tooling / os -------------------------------------------------------------
+.freebuff/
+.DS_Store
+Thumbs.db
+*.log

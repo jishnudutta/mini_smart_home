@@ -1,0 +1,54 @@
+# Mini Smart Room — production stack
+#
+#   nginx (port 80)  ──serves dashboard──▶  browser on http://<vps>:9000
+#      │  /api, /ws proxy
+#   backend (8000)  ──SQLite──▶  named volume (survives restarts)
+#
+# The ESP32 node dials the SAME published port: set BACKEND_HOST in the
+# firmware to http://<vps-ip>:9000 and it reaches the API through nginx.
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      BACKEND_HOST: 0.0.0.0
+      BACKEND_PORT: "8000"
+      # SQLite lives on the named volume so restarts/rebuilds keep the
+      # device registry and history.
+      DATABASE_URL: sqlite:////app/data/smartroom.db
+      SIMULATOR_ENABLED: "false"
+      NODE_TIMEOUT_SECONDS: "60"
+    volumes:
+      - smartroom-data:/app/data
+    restart: unless-stopped
+    networks:
+      - smartroom
+
+  nginx:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.nginx
+      args:
+        # Same-origin by default: the browser talks to nginx, nginx talks to
+        # the backend. Set this only if the API lives elsewhere.
+        VITE_API_URL: ""
+    # Container port 80 → host port 9000. To use another port (9001, …),
+    # change the left-hand side: "9001:80".
+    ports:
+      - "9000:80"
+    depends_on:
+      backend:
+        # Wait until the API answers /api/health before nginx starts — no
+        # gateways that proxy into a still-booting backend.
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - smartroom
+
+volumes:
+  smartroom-data:
+
+networks:
+  smartroom:

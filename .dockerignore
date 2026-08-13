@@ -1,0 +1,13 @@
+# Repo-root .dockerignore — used by docker/Dockerfile.nginx (context: .)
+.git
+frontend/node_modules
+frontend/dist
+frontend/.env.local
+backend/.venv
+backend/app/__pycache__
+backend/**/__pycache__
+backend/*.db
+backend/*.db-wal
+backend/*.db-shm
+esp32
+*.md
