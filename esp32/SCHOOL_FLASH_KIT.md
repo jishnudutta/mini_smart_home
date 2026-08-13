@@ -27,8 +27,7 @@ const char* WIFI_SSID = "the-wifi-name-at-school";   // or a phone hotspot
 const char* WIFI_PASS = "the-wifi-password";
 
 // Your VPS — FastAPI + dashboard run there. No "http://".
-const char* BACKEND_HOST = "smartroom.jishworks.in";   // gateway: dashboard + API
-const uint16_t BACKEND_PORT = 9000;                     // (direct API: api.smartroom.jishworks.in)
+const char* BACKEND_HOST = "api.smartroom.jishworks.in";
 ```
 
 - `BACKEND_HOST` is your **VPS address or domain** (or the LAN IP of any
@@ -99,7 +98,7 @@ backend appears.
 ```
 === Smart Room ESP32 node ===
 firmware v0.3.0 — by Jishworks - Jishnu Dutta - jishworks.in
-node: esp32_room_01   backend: smartroom.jishworks.in:9000
+node: esp32_room_01   backend: api.smartroom.jishworks.in
 [register] ok
 [devices] map refreshed: N device(s)
 ```

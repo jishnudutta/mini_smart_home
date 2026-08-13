@@ -70,7 +70,7 @@ const STEPS = [
     options: [
       {
         label: 'ESP32 → deployed backend',
-        code: 'const char* BACKEND_HOST = "smartroom.jishworks.in";   // no http://\nconst uint16_t BACKEND_PORT = 9000;',
+        code: 'const char* BACKEND_HOST = "api.smartroom.jishworks.in";   // no http://',
       },
     ],
     note: 'v0.1 has no authentication — put TLS in front (Caddy / certbot + nginx) and add auth before exposing port 9000 to the public internet.',

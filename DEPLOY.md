@@ -77,8 +77,7 @@ In `esp32/firmware/smart_room_node/config.h`, set `BACKEND_HOST` to the VPS
 address and recompile/upload:
 
 ```cpp
-const char* BACKEND_HOST = "<vps-ip-or-domain>";  // no http:// — the firmware adds it
-const uint16_t BACKEND_PORT = 9000;
+const char* BACKEND_HOST = "api.smartroom.jishworks.in";  // no http:// — the firmware adds it
 ```
 
 The node registers, fetches its device map, and polls commands through the same

@@ -79,7 +79,7 @@ static unsigned long g_bootMs = 0;
 // ---------------------------------------------------------------------------
 
 static String backendUrl(const String& path) {
-  return "http://" + String(BACKEND_HOST) + ":" + String(BACKEND_PORT) + path;
+  return "http://" + String(BACKEND_HOST) + path;
 }
 
 static NodeDevice* findDevice(const char* id) {
@@ -414,7 +414,7 @@ static void printStatus() {
   Serial.printf("node:      %s\n", NODE_ID);
   Serial.printf("firmware:  v%s %s\n", FIRMWARE_VERSION, FIRMWARE_BY);
   Serial.printf("mode:      %s\n", g_standalone ? "standalone (no backend)" : "backend");
-  Serial.printf("backend:   %s:%u\n", BACKEND_HOST, BACKEND_PORT);
+  Serial.printf("backend:   %s\n", BACKEND_HOST);
   Serial.printf("wifi:      %s (rssi %d dBm)\n",
                 WiFi.status() == WL_CONNECTED ? "connected" : "disconnected",
                 WiFi.RSSI());
@@ -497,7 +497,7 @@ void setup() {
   Serial.println();
   Serial.println("=== Smart Room ESP32 node ===");
   Serial.printf("firmware v%s — %s\n", FIRMWARE_VERSION, FIRMWARE_BY);
-  Serial.printf("node: %s   backend: %s:%u\n", NODE_ID, BACKEND_HOST, BACKEND_PORT);
+  Serial.printf("node: %s   backend: %s\n", NODE_ID, BACKEND_HOST);
   Serial.printf("sensor model: DHT%d (edit config.h to switch)\n", DHT_MODEL == DHT11 ? 11 : 22);
   Serial.println("devices: fetched from backend (not hard-coded)");
   if (FALLBACK_AFTER_MS > 0) {
