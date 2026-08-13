@@ -66,6 +66,7 @@ struct NodeDevice {
   float temperature = NAN;
   float humidity = NAN;
   bool motion = false;
+  String color = "#ff0000";
 };
 
 NodeDevice g_devices[MAX_DEVICES];
@@ -301,6 +302,9 @@ static bool reportState() {
     } else if (dev.type == "motion") {
       JsonObject data = d["data"].to<JsonObject>();
       data["motion"] = dev.motion;
+    } else if (dev.type == "rgb") {
+      d["state"]["power"] = dev.power;
+      d["state"]["color"] = dev.color;
     } else {
       d["state"]["power"] = dev.power;
     }
@@ -346,10 +350,6 @@ static bool pollAndExecuteCommands() {
     const char* deviceId = cmd["deviceId"] | "";
     const char* command = cmd["command"] | "";
 
-    if (strcmp(command, "power") != 0) {
-      Serial.printf("[cmd] %s: unsupported command \"%s\"\n", deviceId, command);
-      continue;
-    }
     NodeDevice* d = findDevice(deviceId);
     if (d == nullptr) {
       // Not in the map yet — a dashboard-added device arrives on the next
@@ -357,10 +357,20 @@ static bool pollAndExecuteCommands() {
       Serial.printf("[cmd] %s: not in local map yet (refresh pending)\n", deviceId);
       continue;
     }
-    bool value = cmd["value"].as<bool>();
-    setPower(d, value);
-    changed = true;
-    Serial.printf("[cmd] %s power -> %s\n", deviceId, value ? "ON" : "OFF");
+
+    if (strcmp(command, "power") == 0) {
+      bool value = cmd["value"].as<bool>();
+      setPower(d, value);
+      changed = true;
+      Serial.printf("[cmd] %s power -> %s\n", deviceId, value ? "ON" : "OFF");
+    } else if (strcmp(command, "color") == 0) {
+      const char* hex = cmd["value"] | "#ffffff";
+      d->color = String(hex);
+      changed = true;
+      Serial.printf("[cmd] %s color -> %s\n", deviceId, hex);
+    } else {
+      Serial.printf("[cmd] %s: unsupported command \"%s\"\n", deviceId, command);
+    }
   }
   return changed;
 }

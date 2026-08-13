@@ -7,6 +7,8 @@ import DeviceCard from '../components/DeviceCard'
 import EnvironmentCard from '../components/EnvironmentCard'
 import ModeSwitch from '../components/ModeSwitch'
 import SensorChart from '../components/SensorChart'
+import SmartHeroBanner from '../components/SmartHeroBanner'
+import ThemeToggle from '../components/ThemeToggle'
 
 function fmtUptime(seconds) {
   if (!seconds) return '—'
@@ -33,6 +35,7 @@ export default function Dashboard({ onOpenDocs }) {
           <span className="brand__ver">v0.1</span>
         </div>
         <div className="header__right">
+          <ThemeToggle />
           <button type="button" className="btn btn--ghost btn--sm" onClick={onOpenDocs}>
             <BookOpen size={14} strokeWidth={2.25} /> Docs
           </button>
@@ -48,6 +51,8 @@ export default function Dashboard({ onOpenDocs }) {
 
       <main>
         {error && devices.length > 0 && <div className="banner">{error}</div>}
+
+        <SmartHeroBanner />
 
         {loading ? (
           <div className="state-panel">

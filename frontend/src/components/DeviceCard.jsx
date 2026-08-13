@@ -43,6 +43,9 @@ export default function DeviceCard({ device }) {
         ? ' dcard--light'
         : ' dcard--generic'
 
+  const hasColor = device.capabilities?.includes('color') || device.type === 'rgb'
+  const currentColor = device.state?.color || '#3b82f6'
+
   const togglePower = async () => {
     setCardError(null)
     setBusy(true)
@@ -50,6 +53,18 @@ export default function DeviceCard({ device }) {
       await sendCommand(device.id, 'power', !powerOn)
     } catch (e) {
       setCardError(e.message || 'The command failed.')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const changeColor = async (hex) => {
+    setCardError(null)
+    setBusy(true)
+    try {
+      await sendCommand(device.id, 'color', hex)
+    } catch (e) {
+      setCardError(e.message || 'Color command failed.')
     } finally {
       setBusy(false)
     }
@@ -84,9 +99,23 @@ export default function DeviceCard({ device }) {
             </div>
           </>
         ) : (
-          <p className="dcard__state">
-            power <b className={powerOn ? 'is-on' : ''}>{powerOn ? 'on' : 'off'}</b>
-          </p>
+          <div className="dcard__state" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <span>
+              power <b className={powerOn ? 'is-on' : ''}>{powerOn ? 'on' : 'off'}</b>
+            </span>
+            {hasColor && (
+              <label style={{ display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer', fontSize: '0.85rem' }}>
+                <span style={{ opacity: 0.8 }}>color</span>
+                <input
+                  type="color"
+                  value={currentColor}
+                  disabled={!online || busy}
+                  onChange={(e) => changeColor(e.target.value)}
+                  style={{ width: 24, height: 24, padding: 0, border: 'none', borderRadius: 4, background: 'none', cursor: 'pointer' }}
+                />
+              </label>
+            )}
+          </div>
         )}
       </div>
 

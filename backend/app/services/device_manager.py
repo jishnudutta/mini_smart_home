@@ -34,7 +34,7 @@ CAPABILITY_BY_TYPE = {
     "fan": ["power"],
     "light": ["power"],
     "switch": ["power"],
-    "rgb": ["power"],
+    "rgb": ["power", "color"],
     "motion": [],
     "sensor": ["temperature", "humidity"],
 }

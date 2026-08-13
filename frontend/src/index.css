@@ -1848,3 +1848,285 @@ select.field {
     margin-top: 12px;
   }
 }
+
+/* ============================================================
+   Smart Home — Day/Night Theme System & Hero Styles
+   ============================================================ */
+
+[data-theme="night"] {
+  --color-base: #0b0f19;
+  --color-ink: #f0f4fc;
+  --color-ink-dim: #94a3b8;
+  --color-ink-faint: #64748b;
+  --color-line: rgba(255, 255, 255, 0.12);
+  --color-line-soft: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="night"] body {
+  background:
+    radial-gradient(1000px 540px at 8% -10%, rgba(99, 102, 241, 0.25) 0%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(820px 520px at 96% -6%, rgba(168, 85, 247, 0.22) 0%, rgba(0, 0, 0, 0) 62%),
+    radial-gradient(1000px 600px at 50% 112%, rgba(14, 165, 233, 0.18) 0%, rgba(0, 0, 0, 0) 60%),
+    linear-gradient(180deg, #090d16 0%, #0f172a 46%, #0b0f19 100%);
+  color: #f0f4fc;
+}
+
+[data-theme="night"] body::before {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+}
+
+[data-theme="night"] .header,
+[data-theme="night"] .hero-banner,
+[data-theme="night"] .dcard,
+[data-theme="night"] .state-panel,
+[data-theme="night"] .env-card,
+[data-theme="night"] .schart {
+  background: rgba(15, 23, 42, 0.68);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+[data-theme="night"] .hero-stat {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme="night"] .scene-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f1f5f9;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+[data-theme="night"] .scene-btn:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+/* Theme Toggle Button */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid var(--color-line);
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-ink);
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+}
+
+.theme-toggle:hover {
+  background: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+
+.theme-toggle__icon {
+  display: grid;
+  place-items: center;
+  opacity: 0.4;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.theme-toggle__icon.is-active {
+  opacity: 1;
+  transform: scale(1.1);
+  color: var(--color-blue);
+}
+
+[data-theme="night"] .theme-toggle__icon.is-active {
+  color: #f59e0b;
+}
+
+/* Smart Hero Banner */
+.hero-banner {
+  margin-top: 20px;
+  margin-bottom: 24px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(20px) saturate(1.4);
+  border: 1px solid rgba(30, 55, 110, 0.1);
+  box-shadow: 0 16px 40px rgba(24, 50, 110, 0.08);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.hero-banner__content {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.greeting-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(139, 124, 246, 0.12));
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-blue);
+  margin-bottom: 8px;
+}
+
+[data-theme="night"] .greeting-badge {
+  color: #a855f7;
+  background: rgba(168, 85, 247, 0.16);
+}
+
+.hero-banner__title {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0 0 4px;
+  line-height: 1.2;
+}
+
+.hero-banner__time {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 15px;
+  color: var(--color-ink-dim);
+  font-weight: 500;
+}
+
+.time-digit {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.time-sep {
+  opacity: 0.4;
+}
+
+.hero-banner__stats {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(30, 55, 110, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.hero-stat__icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: #fff;
+}
+
+.hero-stat__icon--amber {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.hero-stat__icon--teal {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.hero-stat__icon--blue {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+}
+
+.hero-stat__info {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stat__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-ink-dim);
+  font-weight: 600;
+}
+
+.hero-stat__value {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.hero-stat__value small {
+  font-weight: 500;
+  opacity: 0.75;
+}
+
+/* Quick Actions Bar */
+.hero-banner__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 16px;
+  border-top: 1px solid var(--color-line-soft);
+  flex-wrap: wrap;
+}
+
+.actions-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.scene-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.scene-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid rgba(30, 55, 110, 0.1);
+  color: var(--color-ink);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.scene-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-blue);
+}
+
+.scene-btn--accent {
+  background: linear-gradient(135deg, var(--color-blue), var(--color-violet));
+  color: #fff;
+  border: none;
+  box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
+}
+
+.scene-btn--accent:hover {
+  box-shadow: 0 8px 22px rgba(99, 102, 241, 0.45);
+}
