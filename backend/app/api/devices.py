@@ -25,7 +25,7 @@ def create_device(body: CreateDeviceRequest, session: Session = Depends(get_sess
         session,
         body.name,
         body.type,
-        body.pin,
+        body.pins,
         sensor_type=body.sensorType,
     )
 

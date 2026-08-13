@@ -532,9 +532,10 @@ export default function CircuitLab() {
   const pinsUsed = useMemo(() => {
     const map = {}
     for (const d of devices) {
-      if (d.pin != null) {
-        map[d.pin] = map[d.pin] || []
-        map[d.pin].push(d)
+      const pins = Array.isArray(d.pin) ? d.pin : (d.pin != null ? [d.pin] : [])
+      for (const p of pins) {
+        map[p] = map[p] || []
+        map[p].push(d)
       }
     }
     return map
@@ -563,7 +564,8 @@ export default function CircuitLab() {
   const chooseDevice = (d) => {
     const key = TYPE_TO_CIRCUIT[d.type] || 'light'
     setCircuitKey(key)
-    setSelected(d.pin != null ? findPin(d.pin) : null)
+    const pins = Array.isArray(d.pin) ? d.pin : (d.pin != null ? [d.pin] : [])
+    setSelected(pins.length > 0 ? findPin(pins[0]) : null)
   }
 
   return (
@@ -593,11 +595,11 @@ export default function CircuitLab() {
               type="button"
               className="chip"
               onClick={() => chooseDevice(d)}
-              title={`${d.id} · GPIO ${d.pin}`}
+              title={`${d.id} · GPIO ${(Array.isArray(d.pin) ? d.pin : (d.pin != null ? [d.pin] : [])).join(', ')}`}
             >
               <span className={`chip__dot ${d.online ? 'chip__dot--on' : ''}`} />
               {d.name}
-              <span className="chip__pin">GPIO {d.pin}</span>
+              <span className="chip__pin">GPIO {(Array.isArray(d.pin) ? d.pin : (d.pin != null ? [d.pin] : [])).join(', ')}</span>
             </button>
           ))}
         </div>

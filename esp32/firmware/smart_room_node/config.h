@@ -75,17 +75,18 @@ const unsigned long FALLBACK_AFTER_MS = 30000;
 struct FallbackDevice {
   const char* id;
   const char* type;
-  uint8_t pin;
+  uint8_t pins[3];
+  uint8_t pinCount;
 };
 
 // Built-in demo map — mirrors the reference wiring (see esp32/README.md).
 // Edit the pins to match YOUR model's wiring. Sensor/motion entries are read
 // (not driven); everything else is driven as an output.
 const FallbackDevice FALLBACK_DEVICES[] = {
-  {"light_01",    "light",  2},   // onboard blue LED
-  {"room_light",  "light", 16},
-  {"corner_lamp", "light", 17},
-  {"fan_01",      "fan",   26},
-  {"dht11_01",    "sensor", 4},
+  {"light_01",    "light",  {2},  1},   // onboard blue LED
+  {"room_light",  "light",  {16}, 1},
+  {"corner_lamp", "light",  {17}, 1},
+  {"fan_01",      "fan",    {26}, 1},
+  {"dht11_01",    "sensor", {4},  1},
 };
 const size_t FALLBACK_DEVICE_COUNT = sizeof(FALLBACK_DEVICES) / sizeof(FallbackDevice);

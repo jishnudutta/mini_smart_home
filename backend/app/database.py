@@ -32,9 +32,13 @@ def _migrate() -> None:
 
     with engine.connect() as conn:
         cols = [r[1] for r in conn.exec_driver_sql("PRAGMA table_info(devices)")]
-    if "pin" not in cols:
-        with engine.begin() as conn:
-            conn.exec_driver_sql("ALTER TABLE devices ADD COLUMN pin INTEGER")
+        col_types = {r[1]: r[2] for r in conn.exec_driver_sql("PRAGMA table_info(devices)")}
+        if "pin" in cols and col_types.get("pin", "").upper() == "INTEGER":
+            conn.exec_driver_sql("ALTER TABLE devices ADD COLUMN pin_tmp TEXT")
+            conn.exec_driver_sql("UPDATE devices SET pin_tmp = '[' || pin || ']' WHERE pin IS NOT NULL")
+            conn.exec_driver_sql("ALTER TABLE devices DROP COLUMN pin")
+            conn.exec_driver_sql("ALTER TABLE devices RENAME COLUMN pin_tmp TO pin")
+            conn.commit()
 
     # The built-in LED (ESP32 Dev Module, GPIO2) predates dashboard
     # provisioning. Give it its pin so the data-driven firmware keeps driving
@@ -42,7 +46,7 @@ def _migrate() -> None:
     with Session(engine) as session:
         dev = session.get(Device, "light_01")
         if dev is not None and dev.pin is None:
-            dev.pin = 2
+            dev.pin = [2]
             session.add(dev)
             session.commit()
 

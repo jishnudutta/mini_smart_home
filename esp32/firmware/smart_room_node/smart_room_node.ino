@@ -58,11 +58,12 @@
 struct NodeDevice {
   String id;
   String type;
-  uint8_t pin;
-  bool power = false;   // last commanded state, preserved across map refreshes
+  uint8_t pins[3];       // up to 3 pins (RGB uses all 3)
+  uint8_t pinCount = 1;  // how many pins are valid
+  bool power = false;    // last commanded state, preserved across map refreshes
 
   // sensor / motion readings (filled by readSensors, reported as `data`)
-  bool hasRead = false; // true once at least one valid reading exists
+  bool hasRead = false;  // true once at least one valid reading exists
   float temperature = NAN;
   float humidity = NAN;
   bool motion = false;
@@ -83,6 +84,27 @@ static bool g_secureInited = false;
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
+
+static void hexToRgb(const char* hex, uint8_t& r, uint8_t& g, uint8_t& b) {
+  long n = strtol(hex, nullptr, 16);
+  r = (n >> 16) & 0xFF;
+  g = (n >> 8) & 0xFF;
+  b = n & 0xFF;
+}
+
+static void setRgbPwm(NodeDevice* d, const char* hex) {
+  uint8_t r, g, b;
+  hexToRgb(hex, r, g, b);
+  ledcWrite(d->pins[0], r);
+  ledcWrite(d->pins[1], g);
+  ledcWrite(d->pins[2], b);
+}
+
+static void setRgbOff(NodeDevice* d) {
+  ledcWrite(d->pins[0], 0);
+  ledcWrite(d->pins[1], 0);
+  ledcWrite(d->pins[2], 0);
+}
 
 static String backendUrl(const String& path) {
   String host = String(BACKEND_HOST);
@@ -119,7 +141,15 @@ static NodeDevice* findDevice(const char* id) {
 
 static void setPower(NodeDevice* d, bool on) {
   d->power = on;
-  digitalWrite(d->pin, on ? HIGH : LOW);
+  if (d->type == "rgb") {
+    if (on) {
+      setRgbPwm(d, d->color.c_str());
+    } else {
+      setRgbOff(d);
+    }
+  } else {
+    digitalWrite(d->pins[0], on ? HIGH : LOW);
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -231,8 +261,8 @@ static bool fetchDevices() {
   for (JsonObject d : doc["devices"].as<JsonArray>()) {
     if (n >= MAX_DEVICES) break;
     const char* id = d["id"] | "";
-    int pin = d["pin"] | -1;
-    if (!id[0] || pin < 0 || pin > 48) continue;
+    JsonArray pins = d["pin"].as<JsonArray>();
+    if (!id[0] || pins.size() == 0) continue;
 
     bool prevPower = false;
     for (size_t i = 0; i < g_numDevices; i++) {
@@ -244,7 +274,10 @@ static bool fetchDevices() {
 
     g_devices[n].id = id;
     g_devices[n].type = d["type"] | "light";
-    g_devices[n].pin = (uint8_t)pin;
+    g_devices[n].pinCount = pins.size() > 3 ? 3 : pins.size();
+    for (size_t p = 0; p < g_devices[n].pinCount; p++) {
+      g_devices[n].pins[p] = (uint8_t)(pins[p] | -1);
+    }
     g_devices[n].power = prevPower;
     n++;
   }
@@ -255,20 +288,35 @@ static bool fetchDevices() {
   for (size_t i = 0; i < g_numDevices; i++) {
     NodeDevice& dev = g_devices[i];
     if (dev.type == "sensor" || dev.type == "motion") {
-      // Inputs only. (DHT.begin() re-applies the mode for sensor pins.)
-      pinMode(dev.pin, dev.type == "motion" ? INPUT_PULLDOWN : INPUT);
+      pinMode(dev.pins[0], dev.type == "motion" ? INPUT_PULLDOWN : INPUT);
+    } else if (dev.type == "rgb") {
+      for (size_t p = 0; p < dev.pinCount; p++) {
+        pinMode(dev.pins[p], OUTPUT);
+        ledcSetup(p, 5000, 8);
+        ledcAttachPin(dev.pins[p], p);
+        ledcWrite(p, 0);
+      }
+      if (dev.power) {
+        setRgbPwm(&dev, dev.color.c_str());
+      }
     } else {
-      pinMode(dev.pin, OUTPUT);
-      digitalWrite(dev.pin, dev.power ? HIGH : LOW);
+      pinMode(dev.pins[0], OUTPUT);
+      digitalWrite(dev.pins[0], dev.power ? HIGH : LOW);
     }
   }
 
   if (changed) {
     Serial.printf("[devices] map refreshed: %u device(s)\n", g_numDevices);
     for (size_t i = 0; i < g_numDevices; i++) {
-      Serial.printf("  - %s (%s) gpio %u %s\n",
-                    g_devices[i].id.c_str(), g_devices[i].type.c_str(),
-                    g_devices[i].pin, g_devices[i].power ? "ON" : "OFF");
+      NodeDevice& d = g_devices[i];
+      if (d.type == "rgb") {
+        Serial.printf("  - %s (%s) gpio %u %u %u %s\n",
+                      d.id.c_str(), d.type.c_str(),
+                      d.pins[0], d.pins[1], d.pins[2], d.power ? "ON" : "OFF");
+      } else {
+        Serial.printf("  - %s (%s) gpio %u %s\n",
+                      d.id.c_str(), d.type.c_str(), d.pins[0], d.power ? "ON" : "OFF");
+      }
     }
   }
   return true;
@@ -366,6 +414,9 @@ static bool pollAndExecuteCommands() {
     } else if (strcmp(command, "color") == 0) {
       const char* hex = cmd["value"] | "#ffffff";
       d->color = String(hex);
+      if (d->type == "rgb" && d->power) {
+        setRgbPwm(d, hex);
+      }
       changed = true;
       Serial.printf("[cmd] %s color -> %s\n", deviceId, hex);
     } else {
@@ -389,7 +440,7 @@ static void readSensors() {
     NodeDevice& dev = g_devices[i];
 
     if (dev.type == "sensor") {
-      DHT dht(dev.pin, DHT_MODEL, 3);   // count=3: fail fast on a bare pin
+      DHT dht(dev.pins[0], DHT_MODEL, 3);   // count=3: fail fast on a bare pin
       dht.begin();
       float t = dht.readTemperature();
       float h = dht.readHumidity();
@@ -399,10 +450,10 @@ static void readSensors() {
           millis() - lastHint > 60000UL) {
         lastHint = millis();
         Serial.printf("[sensor] %s: no reading on GPIO %u — check wiring / pull-up\n",
-                      dev.id.c_str(), dev.pin);
+                      dev.id.c_str(), dev.pins[0]);
       }
     } else if (dev.type == "motion") {
-      dev.motion = (digitalRead(dev.pin) == HIGH);
+      dev.motion = (digitalRead(dev.pins[0]) == HIGH);
     }
   }
 }
@@ -418,25 +469,37 @@ static void enableStandalone() {
   for (size_t i = 0; i < FALLBACK_DEVICE_COUNT && i < MAX_DEVICES; i++) {
     g_devices[i].id = FALLBACK_DEVICES[i].id;
     g_devices[i].type = FALLBACK_DEVICES[i].type;
-    g_devices[i].pin = FALLBACK_DEVICES[i].pin;
+    g_devices[i].pinCount = FALLBACK_DEVICES[i].pinCount;
+    for (size_t p = 0; p < g_devices[i].pinCount; p++) {
+      g_devices[i].pins[p] = FALLBACK_DEVICES[i].pins[p];
+    }
     g_devices[i].power = false;
     g_numDevices++;
   }
   for (size_t i = 0; i < g_numDevices; i++) {
     NodeDevice& dev = g_devices[i];
     if (dev.type == "sensor" || dev.type == "motion") {
-      pinMode(dev.pin, INPUT);
+      pinMode(dev.pins[0], INPUT);
     } else {
-      pinMode(dev.pin, OUTPUT);
-      digitalWrite(dev.pin, LOW);
+      pinMode(dev.pins[0], OUTPUT);
+      digitalWrite(dev.pins[0], LOW);
     }
   }
   Serial.println("[standalone] backend unreachable — built-in device map active");
   Serial.println("[standalone] drive it with `on <id>` / `off <id>` (type help)");
   for (size_t i = 0; i < g_numDevices; i++) {
-    Serial.printf("  - %s (%s) gpio %u\n",
-                  g_devices[i].id.c_str(), g_devices[i].type.c_str(),
-                  g_devices[i].pin);
+    NodeDevice& d = g_devices[i];
+    Serial.printf("  - %s (%s) gpio %u",
+                  d.id.c_str(), d.type.c_str(), d.pins[0]);
+    if (d.type == "sensor" && d.hasRead) {
+      if (!isnan(d.temperature)) Serial.printf("  %.1f C", d.temperature);
+      if (!isnan(d.humidity)) Serial.printf("  / %.0f %%rh", d.humidity);
+    } else if (d.type == "motion") {
+      Serial.printf("  motion %s", d.motion ? "DETECTED" : "clear");
+    } else {
+      Serial.printf("  power %s", d.power ? "ON" : "OFF");
+    }
+    Serial.println();
   }
 }
 
@@ -474,7 +537,11 @@ static void handleSerial() {
           Serial.printf("device map (%u):\n", g_numDevices);
           for (size_t i = 0; i < g_numDevices; i++) {
             NodeDevice& d = g_devices[i];
-            Serial.printf("  %s (%s) gpio %u", d.id.c_str(), d.type.c_str(), d.pin);
+            if (d.type == "rgb") {
+              Serial.printf("  %s (%s) gpio %u %u %u", d.id.c_str(), d.type.c_str(), d.pins[0], d.pins[1], d.pins[2]);
+            } else {
+              Serial.printf("  %s (%s) gpio %u", d.id.c_str(), d.type.c_str(), d.pins[0]);
+            }
             if (d.type == "sensor" && d.hasRead) {
               if (!isnan(d.temperature)) Serial.printf("  %.1f C", d.temperature);
               if (!isnan(d.humidity)) Serial.printf("  / %.0f %%rh", d.humidity);

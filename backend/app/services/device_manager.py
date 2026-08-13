@@ -92,13 +92,13 @@ def create_device(
     session: Session,
     name: str,
     device_type: str,
-    pin: int,
+    pins: list[int],
     sensor_type: Optional[str] = None,
 ) -> dict[str, Any]:
     """Add a device to the registry from the dashboard.
 
-    The user supplies name, type, and the GPIO pin the hardware is wired to;
-    the backend generates the permanent id, derives capabilities from the
+    The user supplies name, type, and the GPIO pin(s) the hardware is wired
+    to; the backend generates the permanent id, derives capabilities from the
     type, and hands the pin map to the owning node via /api/esp32/{id}/devices
     (the node is data-driven — nothing is hard-coded in firmware).
     """
@@ -113,19 +113,29 @@ def create_device(
             status_code=400,
             detail="Type must use letters, numbers, or underscores.",
         )
-    if pin is None or not isinstance(pin, int):
-        raise HTTPException(status_code=400, detail="A GPIO pin is required.")
-    if not 0 <= pin <= 48:
-        raise HTTPException(status_code=400, detail="Pin must be between 0 and 48.")
+    if not pins or not isinstance(pins, list) or len(pins) == 0:
+        raise HTTPException(status_code=400, detail="At least one GPIO pin is required.")
+    if device_type == "rgb":
+        if len(pins) != 3:
+            raise HTTPException(status_code=400, detail="RGB devices need exactly 3 GPIO pins (R, G, B).")
+    else:
+        if len(pins) != 1:
+            raise HTTPException(status_code=400, detail="This device type needs exactly 1 GPIO pin.")
+    for p in pins:
+        if not isinstance(p, int) or not 0 <= p <= 48:
+            raise HTTPException(status_code=400, detail="Pins must be whole numbers between 0 and 48.")
 
-    clash = session.exec(
-        select(Device).where(Device.node_id == config.DEFAULT_NODE_ID, Device.pin == pin)
-    ).first()
-    if clash is not None:
-        raise HTTPException(
-            status_code=400,
-            detail=f"Pin {pin} is already used by {clash.name} ({clash.id}).",
-        )
+    existing = session.exec(
+        select(Device).where(Device.node_id == config.DEFAULT_NODE_ID, Device.pin.is_not(None))
+    ).all()
+    new_pin_set = set(pins)
+    for dev in existing:
+        dev_pins = dev.pin if isinstance(dev.pin, list) else [dev.pin]
+        if new_pin_set.intersection(dev_pins):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Pin(s) already used by {dev.name} ({dev.id}).",
+            )
 
     device_id = _next_device_id(session, device_type)
     capabilities = list(CAPABILITY_BY_TYPE.get(device_type, []))
@@ -139,7 +149,7 @@ def create_device(
         sensor_type=resolved_sensor_type,
         capabilities=capabilities,
         node_id=config.DEFAULT_NODE_ID,
-        pin=pin,
+        pin=pins,
         created_at=now,
         updated_at=now,
     )

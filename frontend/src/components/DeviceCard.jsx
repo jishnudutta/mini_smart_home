@@ -7,8 +7,10 @@ import RenameModal from './RenameModal'
 
 function typeTag(device) {
   const base = device.sensorType ? `${device.type} · ${device.sensorType}` : `type: ${device.type}`
-  // Devices added from the dashboard carry the pin they're wired to.
-  return device.pin != null ? `${base} · gpio ${device.pin}` : base
+  const pins = Array.isArray(device.pin) ? device.pin : (device.pin != null ? [device.pin] : [])
+  if (pins.length === 0) return base
+  const pinStr = pins.join(', ')
+  return `${base} · gpio ${pinStr}`
 }
 
 // One card renders every kind of device. What it shows is decided by the

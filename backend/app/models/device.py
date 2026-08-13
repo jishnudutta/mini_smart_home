@@ -21,10 +21,9 @@ class Device(SQLModel, table=True):
     sensor_type: Optional[str] = Field(default=None)
     capabilities: list[str] = Field(default_factory=list, sa_column=Column(JSON))
     node_id: Optional[str] = Field(default=None, index=True)
-    # The GPIO pin the owning node drives. Set when a device is added from the
-    # dashboard (or backfilled for pre-existing hardware); the node fetches
-    # its pin map from the backend rather than hard-coding it in firmware.
-    pin: Optional[int] = Field(default=None)
+    # The GPIO pin(s) the owning node drives. Stored as a JSON array so
+    # multi-pin devices like RGB can carry all their channel pins.
+    pin: Optional[list[int]] = Field(default=None, sa_column=Column(JSON))
     created_at: datetime = Field(default_factory=utcnow)
     updated_at: datetime = Field(default_factory=utcnow)
 

@@ -18,7 +18,9 @@ export default function AddDeviceModal({ onClose, initial }) {
   const { addDevice } = useSmartRoom()
   const [name, setName] = useState(initial?.name ?? '')
   const [type, setType] = useState(initial?.type ?? 'light')
-  const [pin, setPin] = useState(initial?.pin != null ? String(initial.pin) : '')
+  const [pin1, setPin1] = useState(initial?.pin?.[0] != null ? String(initial.pin[0]) : '')
+  const [pin2, setPin2] = useState(initial?.pin?.[1] != null ? String(initial.pin[1]) : '')
+  const [pin3, setPin3] = useState(initial?.pin?.[2] != null ? String(initial.pin[2]) : '')
   const [busy, setBusy] = useState(false)
   const [err, setErr] = useState(null)
   const inputRef = useRef(null)
@@ -37,19 +39,23 @@ export default function AddDeviceModal({ onClose, initial }) {
 
   const save = async () => {
     const trimmed = name.trim()
-    const pinNum = Number(pin)
+    const pins = type === 'rgb'
+      ? [Number(pin1), Number(pin2), Number(pin3)]
+      : [Number(pin1)]
     if (!trimmed) {
       setErr('Give the device a name.')
       return
     }
-    if (!Number.isInteger(pinNum) || pinNum < 0 || pinNum > 48) {
-      setErr('Pin must be a whole number between 0 and 48.')
+    if (pins.some((p) => !Number.isInteger(p) || p < 0 || p > 48)) {
+      setErr(type === 'rgb'
+        ? 'All 3 GPIO pins must be whole numbers between 0 and 48.'
+        : 'GPIO pin must be a whole number between 0 and 48.')
       return
     }
     setBusy(true)
     setErr(null)
     try {
-      await addDevice({ name: trimmed, type, pin: pinNum })
+      await addDevice({ name: trimmed, type, pins })
       onClose()
     } catch (e) {
       setErr(e.message || "Couldn't add the device.")
@@ -94,18 +100,63 @@ export default function AddDeviceModal({ onClose, initial }) {
             </select>
           </div>
           <div>
-            <label className="field-label" htmlFor="add-pin">GPIO pin</label>
-            <input
-              id="add-pin"
-              className="field"
-              type="number"
-              min={0}
-              max={48}
-              value={pin}
-              placeholder="e.g. 4"
-              onChange={(e) => setPin(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && save()}
-            />
+            {type === 'rgb' ? (
+              <>
+                <label className="field-label" htmlFor="add-pin-r">Red GPIO pin</label>
+                <input
+                  id="add-pin-r"
+                  className="field"
+                  type="number"
+                  min={0}
+                  max={48}
+                  value={pin1}
+                  placeholder="e.g. 4"
+                  onChange={(e) => setPin1(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && save()}
+                  style={{ marginBottom: 8 }}
+                />
+                <label className="field-label" htmlFor="add-pin-g">Green GPIO pin</label>
+                <input
+                  id="add-pin-g"
+                  className="field"
+                  type="number"
+                  min={0}
+                  max={48}
+                  value={pin2}
+                  placeholder="e.g. 5"
+                  onChange={(e) => setPin2(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && save()}
+                  style={{ marginBottom: 8 }}
+                />
+                <label className="field-label" htmlFor="add-pin-b">Blue GPIO pin</label>
+                <input
+                  id="add-pin-b"
+                  className="field"
+                  type="number"
+                  min={0}
+                  max={48}
+                  value={pin3}
+                  placeholder="e.g. 6"
+                  onChange={(e) => setPin3(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && save()}
+                />
+              </>
+            ) : (
+              <>
+                <label className="field-label" htmlFor="add-pin">GPIO pin</label>
+                <input
+                  id="add-pin"
+                  className="field"
+                  type="number"
+                  min={0}
+                  max={48}
+                  value={pin1}
+                  placeholder="e.g. 4"
+                  onChange={(e) => setPin1(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && save()}
+                />
+              </>
+            )}
           </div>
         </div>
 
@@ -117,7 +168,7 @@ export default function AddDeviceModal({ onClose, initial }) {
           <button
             type="button"
             className="btn btn--primary"
-            disabled={busy || !name.trim() || !pin}
+            disabled={busy || !name.trim() || !pin1 || (type === 'rgb' && (!pin2 || !pin3))}
             onClick={save}
           >
             {busy ? 'Adding…' : 'Add device'}
