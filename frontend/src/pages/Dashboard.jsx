@@ -39,7 +39,7 @@ export default function Dashboard({ onOpenDocs }) {
           <ModeSwitch mode={mode} onChange={setMode} />
           <ConnectionStatus
             label="node"
-            online={status?.online !== false}
+            online={Boolean(status?.online)}
             detail={status?.nodeId}
           />
           <ConnectionStatus label="api" online={connected} />
@@ -57,12 +57,24 @@ export default function Dashboard({ onOpenDocs }) {
         ) : devices.length === 0 ? (
           <div className="state-panel">
             <p className="state-panel__title">No devices in the room yet</p>
-            <p>When an ESP32 node checks in, its devices will appear here.</p>
-            <p style={{ marginTop: 12 }}>
-              <button type="button" className="btn btn--ghost" onClick={refresh}>
-                Try again
-              </button>
+            <p>
+              {status?.online
+                ? `Node "${status.nodeId || 'esp32_room_01'}" is connected and active.`
+                : 'Waiting for ESP32 node to check in.'}{' '}
+              Add your first device (Light, Fan, Sensor) to map hardware GPIO pins.
             </p>
+            <div style={{ marginTop: 16, display: 'flex', gap: 12, justifyContent: 'center', alignItems: 'center' }}>
+              <button
+                type="button"
+                className="btn btn--primary"
+                onClick={() => setAdding(true)}
+              >
+                <Plus size={16} strokeWidth={2.5} /> Add first device
+              </button>
+              <button type="button" className="btn btn--ghost" onClick={refresh}>
+                Refresh
+              </button>
+            </div>
           </div>
         ) : (
           <>
