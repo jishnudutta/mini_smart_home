@@ -43,6 +43,7 @@
  */
 
 #include <WiFi.h>
+#include <WiFiClientSecure.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
 #include <DHT.h>
@@ -74,12 +75,38 @@ size_t g_numDevices = 0;
 static bool g_standalone = false;
 static unsigned long g_bootMs = 0;
 
+static WiFiClient g_wifiClient;
+static WiFiClientSecure g_wifiClientSecure;
+static bool g_secureInited = false;
+
 // ---------------------------------------------------------------------------
 // Small helpers
 // ---------------------------------------------------------------------------
 
 static String backendUrl(const String& path) {
-  return "http://" + String(BACKEND_HOST) + path;
+  String host = String(BACKEND_HOST);
+  if (host.startsWith("http://") || host.startsWith("https://")) {
+    return host + path;
+  }
+  if (host.length() > 0 && isDigit(host.charAt(0))) {
+    return "http://" + host + path;
+  }
+  return "https://" + host + path;
+}
+
+static void setupHttpClient(HTTPClient& http, const String& url) {
+  if (url.startsWith("https://")) {
+    if (!g_secureInited) {
+      g_wifiClientSecure.setInsecure();
+      g_secureInited = true;
+    }
+    http.begin(g_wifiClientSecure, url);
+  } else {
+    http.begin(g_wifiClient, url);
+  }
+  http.setFollowRedirects(HTTPC_STRICT_FOLLOW_REDIRECTS);
+  http.setTimeout(5000);
+  http.setConnectTimeout(5000);
 }
 
 static NodeDevice* findDevice(const char* id) {
@@ -120,6 +147,8 @@ static void noteNetworkResult(bool alive) {
 static void ensureWiFi() {
   if (WiFi.status() == WL_CONNECTED) return;
   Serial.printf("[wifi] connecting to \"%s\"", WIFI_SSID);
+  WiFi.disconnect(true);
+  delay(100);
   WiFi.mode(WIFI_STA);
   WiFi.begin(WIFI_SSID, WIFI_PASS);
   unsigned long start = millis();
@@ -147,10 +176,9 @@ static void ensureWiFi() {
 // port (another app on it), a wrong BACKEND_HOST, or the backend not running.
 static bool registerWithBackend() {
   HTTPClient http;
-  http.begin(backendUrl("/api/esp32/register"));
+  String url = backendUrl("/api/esp32/register");
+  setupHttpClient(http, url);
   http.addHeader("Content-Type", "application/json");
-  http.setTimeout(3000);
-  http.setConnectTimeout(3000);
 
   JsonDocument doc;
   doc["node_id"] = NODE_ID;
@@ -179,9 +207,8 @@ static bool registerWithBackend() {
 // Sensor/motion pins are inputs — they are never driven as outputs.
 static bool fetchDevices() {
   HTTPClient http;
-  http.begin(backendUrl(String("/api/esp32/") + NODE_ID + "/devices"));
-  http.setTimeout(3000);
-  http.setConnectTimeout(3000);
+  String url = backendUrl(String("/api/esp32/") + NODE_ID + "/devices");
+  setupHttpClient(http, url);
 
   int code = http.GET();
   noteNetworkResult(code >= 0);
@@ -252,10 +279,9 @@ static bool fetchDevices() {
 //   motion        -> data {motion}
 static bool reportState() {
   HTTPClient http;
-  http.begin(backendUrl("/api/esp32/report"));
+  String url = backendUrl("/api/esp32/report");
+  setupHttpClient(http, url);
   http.addHeader("Content-Type", "application/json");
-  http.setTimeout(3000);
-  http.setConnectTimeout(3000);
 
   JsonDocument doc;
   doc["node_id"] = NODE_ID;
@@ -297,9 +323,8 @@ static bool reportState() {
 // the dashboard updates quickly).
 static bool pollAndExecuteCommands() {
   HTTPClient http;
-  http.begin(backendUrl(String("/api/esp32/") + NODE_ID + "/commands"));
-  http.setTimeout(3000);
-  http.setConnectTimeout(3000);
+  String url = backendUrl(String("/api/esp32/") + NODE_ID + "/commands");
+  setupHttpClient(http, url);
 
   int code = http.GET();
   noteNetworkResult(code >= 0);

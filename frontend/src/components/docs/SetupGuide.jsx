@@ -33,7 +33,7 @@ const STEPS = [
     icon: Rocket,
     title: 'Flash the ESP32',
     detail: 'One sketch, fully data-driven. It fetches its device map from the backend — no per-device code.',
-    code: `# edit config.h in the sketch folder first:\nconst char* WIFI_SSID = "YOUR_WIFI_SSID";\nconst char* WIFI_PASS = "YOUR_WIFI_PASSWORD";\nconst char* BACKEND_HOST = "192.168.1.50";   // the backend machine's LAN IP\nconst uint16_t BACKEND_PORT = 8000;`,
+    code: `# edit config.h in the sketch folder first:\nconst char* WIFI_SSID = "YOUR_WIFI_SSID";\nconst char* WIFI_PASS = "YOUR_WIFI_PASSWORD";\nconst char* BACKEND_HOST = "api.smartroom.jishworks.in";   // your backend host`,
     options: [
       {
         label: 'Arduino IDE',
@@ -59,14 +59,14 @@ const STEPS = [
     icon: Zap,
     title: 'Watch it go live',
     detail: 'Devices flip online the moment the node’s report covers them. Then control them from the dashboard — state arrives over the WebSocket, no refresh.',
-    verify: 'curl http://127.0.0.1:8000/api/status   # → {"online":true,"deviceCount":N,…}',
+    verify: 'curl https://api.smartroom.jishworks.in/api/status   # → {"online":true,"deviceCount":N,…}',
   },
   {
     id: 'deploy',
     icon: Rocket,
     title: 'Go live',
     detail: 'The container stack serves the dashboard and the API from one origin. The ESP32 dials the same published port.',
-    code: `docker compose up -d --build\n# dashboard: https://smartroom.jishworks.in  ·  API: http://api.smartroom.jishworks.in/api/status`,
+    code: `docker compose up -d --build\n# dashboard: https://smartroom.jishworks.in  ·  API: https://api.smartroom.jishworks.in/api/status`,
     options: [
       {
         label: 'ESP32 → deployed backend',

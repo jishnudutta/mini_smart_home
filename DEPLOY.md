@@ -32,7 +32,7 @@ docker compose up -d --build
 - Health: `https://smartroom.jishworks.in/api/health` (liveness/readiness — the
   stack's container healthchecks probe this endpoint, and nginx waits for the
   backend to report healthy before it starts)
-- **API direct: `http://api.smartroom.jishworks.in/api/status`** — the
+- **API direct: `https://api.smartroom.jishworks.in/api/status`** — the
   backend is published directly on the VPS port **9001** (no nginx in
   between), and your proxy maps the `api.smartroom.jishworks.in` subdomain
   to it — no port suffix in the URL. FastAPI answers `/api/*`, `/docs`, and
